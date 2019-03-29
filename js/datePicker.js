@@ -16,7 +16,7 @@ window.onload = function(){
     Void
 */
 
-function inputOnClick(inputElem){
+function generateCalendar(inputElem){
     let divVar = document.createElement("div");
     divVar.style.display = "inline-block";
     inputElem.parentNode.replaceChild(divVar, inputElem);
@@ -55,12 +55,14 @@ let Calendar = (function(){
 
     class Calendar {
         constructor() {
+            _reminderArray.set(this, []);
+
             let calendar = Calendar.createTable();
             calendar.className = "datePicker";
             calendar.appendChild(this.createThead());
             calendar.appendChild(this.createTbody());
-
             _calendarReference.set(this, calendar);
+
             this.updateCalendar(DateUtilities.getCurrentYear(), DateUtilities.getCurrentMonth());
         }
 
@@ -159,14 +161,27 @@ let Calendar = (function(){
         }
 
         /*
-            28-Marzo-2019
-            Retorna el atributo _selectedYear del objeto
-            Argumentos: ninguno
-            Retorna elemento Select
+            11-Marzo-2019
+            Crea elemento th y retorna su referencia.
+            Argumentos:
+                colspan = numero de columnas a abarcar
+                isDays = indica si el Th es el encabezado de días o no
+            Retorna elemento th
         */
-        getYearPicker(){
-            _yearPicker.get(this);
-        }
+        static createTh(colspan, isDays = false, innerHtml = ""){
+            let thVar = document.createElement("th");
+            thVar.setAttribute("colspan", colspan);
+            Calendar.stylizeTh(thVar);
+
+            if (isDays) {
+                Calendar.stylizeThDays(thVar);
+            }
+            if (innerHtml !== ""){
+                thVar.appendChild(document.createTextNode(innerHtml));
+            }
+
+            return thVar;
+        };
 
         /*
         13-Marzo-2019
@@ -262,52 +277,27 @@ let Calendar = (function(){
             Void
         */
 
-        fillTd(year, month){
-            let tdVar;
-            for(let i = 3, j = DateUtilities.getDayFromYear(year, month, 1), k = 1; k <= DateUtilities.getDaysOfMonth(year, month);){
-                tdVar = this.getCalendarReference.rows[i].cells[j];
-                if(this.getSelectedYear() === DateUtilities.getCurrentYear() && this.getMonthTh().innerHTML === DateUtilities.getMonthString(DateUtilities.getCurrentMonth())
-                    && k === DateUtilities.getCurrentDay()){
-                    let divVar = document.createElement("div");
-                    Calendar.stylizeCurrentDate(divVar);
-                    divVar.appendChild(document.createTextNode("" + k));
-                    tdVar.appendChild(divVar);
-                }
-                else{
-                    tdVar.innerHTML = "" + k;
-                }
-                j++; k++;
-                if(j === 7){
-                    j = 0; i++;
-                }
+        static detectLeftButton(event) {
+            if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
+                return false;
+            } else if ('buttons' in event) {
+                return event.buttons === 1;
+            } else if ('which' in event) {
+                return event.which === 1;
+            } else {
+                return (event.button === 1 || event.type === 'click');
             }
-        };
+        }
+
+        /*********************************************  Hojas de estilo  *********************************************/
 
 
-
-        /*
-            13-Marzo-2019
-            Actualiza los listeners de las celdas del calendario.
-            Asigna listeners si la celda contiene información
-            Borra listeners si la celda no contiene información
-            Argumentos: ninguno
-            Void
-        */
-        updateListenersTd(){
-            let tdVar;
-            for (let i = 3; i < 9; i++) {
-                for (let j = 0; j < 7; j++) {
-                    tdVar = this.getCalendarReference.rows[i].cells[j];
-                    if(tdVar.innerText !== ""){
-                        this.setHoverListeners(tdVar, "rgba(255, 255, 255, 0.2)");
-                        this.setClickChange(tdVar);
-                    }
-                    else{
-                        let elClone = tdVar.cloneNode(false);
-                        tdVar.parentNode.replaceChild(elClone, tdVar);
-                    }
-                }
-            }
+        static stylizeTh(thElement){
+            thElement.style.fontSize = "15px";
+            thElement.style.color = "white";
+            thElement.style.msUserSelect = "none";
+            thElement.style.webkitUserSelect = "none";
+            thElement.style.userSelect = "none";
         };
 
 
@@ -378,75 +368,29 @@ let Calendar = (function(){
             return tbody;
         };
 
-
+        static stylizeThDays(inputTh){
+            inputTh.style.height = "38px";
+            inputTh.style.fontSize = "13px";
+        }
 
         /*
-            11-Marzo-2019
-            Crea elemento th y retorna su referencia.
+            13-Marzo-2019
+            Estiliza elementos Td del calendario
             Argumentos:
-                colspan = numero de columnas a abarcar
-                isDays = indica si el Th es el encabezado de días o no
-            Retorna elemento th
+                tdElement = referencia al elemento Td a estilizar
+            Void
         */
-        static createTh(colspan, isDays = false, innerHtml = ""){
-            let thVar = document.createElement("th");
-            thVar.setAttribute("colspan", colspan);
-            Calendar.stylizeTh(thVar);
-
-            if (isDays) {
-                thVar.style.height = "70px";
-                thVar.style.fontSize = "30px";
-            }
-            if (innerHtml !== ""){
-                thVar.appendChild(document.createTextNode(innerHtml));
-            }
-
-            return thVar;
-        };
-
-
-
-        /*
-        11-Marzo-2019
-        Crea elemento tr según el tipo de fila a crear.
-        Argumentos:
-                type = tipo de tr a crear ["year", "month", "days", "date", other]
-        Retorna elemento tr
-    */
-        createTr(type){
-            let trVar = document.createElement("tr");
-            switch (type) {
-                //Asigna nodos hijos a la fila del año del calendario
-                case "year":
-                    trVar.style.backgroundColor = "#3A4043";
-                    trVar.appendChild(Calendar.createTh(7).appendChild(this.createSel()).parentNode);
-                    this.setInputChange();
-                    break;
-                //Asigna nodos hijos a la fila del mes del calendario
-                case "month":
-                    trVar.style.backgroundColor = "#2E323F";
-                    trVar.appendChild(Calendar.createTh(1).appendChild(this.createA("&lt;", "javascript:", "left")).parentNode);
-                    this.setMonthTh(this, trVar.appendChild(Calendar.createTh(5)));
-                    trVar.appendChild(Calendar.createTh(1).appendChild(this.createA("&gt;", "javascript:", "right")).parentNode);
-                    break;
-                //Asigna nodos hijos a la fila de los días de la semana del calendario
-                case "days":
-                    trVar.style.backgroundColor = "#2E323F";
-                    for (let i = 0; i < 7; i++) {
-                        trVar.appendChild(Calendar.createTh(1, true, DateUtilities.getDayLetter(i)));
-                    }
-                    break;
-                //Asigna celdas de fecha al Tbody del calendario
-                case "date":
-                    trVar = document.createElement("tr");
-                    for (let i = 0; i < 7; i++) {
-                        trVar.appendChild(Calendar.createTd());
-                    }
-                    break;
-                default:
-                    return document.createElement("tr");
-            }
-            return trVar;
+        static stylizeTd(tdElement){
+            tdElement.style.padding = "0.5em 0";
+            tdElement.style.height = "40px";
+            tdElement.style.fontSize = "12px";
+            tdElement.style.backgroundColor = "#3A4043";
+            tdElement.style.textAlign = "center";
+            tdElement.style.verticalAlign = "top";
+            tdElement.style.color = "white";
+            tdElement.style.msUserSelect = "none";
+            tdElement.style.webkitUserSelect = "none";
+            tdElement.style.userSelect = "none";
         };
 
 
@@ -463,37 +407,23 @@ let Calendar = (function(){
             return tdvar;
         };
 
-
-
         /*
-            11-Marzo-2019
-            Crea elemento select y retorna su referencia
-            Argumentos: ninguno
-            Retorna elemento select
+            13-Marzo-2019
+            Estiliza Tabla que contiene el calendario
+            Argumentos:
+                tableElement = referencia al elemento Table a estilizar
+            Void
         */
-        createSel(){
-            let selectBox, options;
-
-            //Creación y asignación de estilo de la caja de selección de año
-            selectBox = document.createElement("select");
-            selectBox.name = "birth-year";
-            selectBox.className = "yearSelection";
-
-            //Eventos del mouse para cambiar el estilo de la caja de selección
-            //this.setHoverListeners(selectBox, "rgba(255, 255, 255, 0.1)");
-
-            //Adjunta las posibles opciones de la caja de selección del año
-            for(let i = DateUtilities.getCurrentYear() + ADD_YEAR; i !== 1900; i--){
-                options = document.createElement("option");
-                options.value = options.innerHTML = "" + i;
-                if (i === DateUtilities.getCurrentYear()){
-                    options.setAttribute("selected", null);
-                }
-                selectBox.appendChild(options);
-            }
-            this.setYearPicker(selectBox);
-            this.stylizeSel(selectBox);
-            return selectBox;
+        static stylizeTable(tableElement){
+            tableElement.style.position = "absolute";
+            tableElement.style.display = "none";
+            tableElement.style.tableLayout = "fixed";
+            tableElement.style.width = "280px";
+            tableElement.style.height = "auto";
+            tableElement.style.borderRadius = "15px";
+            tableElement.style.borderCollapse = "collapse";
+            tableElement.style.backgroundColor = "transparent";
+            tableElement.style.fontFamily = "'Overpass', sans-serif";
         };
 
 
@@ -561,130 +491,143 @@ let Calendar = (function(){
             })
         };
 
+        /*
+            14-Marzo-2019
+            Estiliza elementos Input dentro del calendario
+            Argumentos:
+                inputElement = referencia al elemento input a estilizar
+            Void
+        */
+        static stylizeInput(inputElement) {
+            inputElement.style.marginTop = "0.8em";
+            inputElement.style.height = "13px";
+            inputElement.style.fontSize = "10px";
+            inputElement.style.width = "95%";
+            inputElement.style.backgroundColor = "rgb(150, 150, 150)";
+            inputElement.style.border = "2px black";
+            inputElement.style.borderRadius = "10px";
+            inputElement.style.transition = "0.4s";
+        };
 
+        /*
+            14-Marzo-2019
+            Estiliza elementos P del calendario
+            Argumentos:
+                pElement = referencia al elemento P a estilizar
+            Void
+        */
+        static stylizeP(pElement){
+            pElement.style.margin = "0% auto";
+            pElement.style.marginTop = "0.8em";
+            pElement.style.width = "70%";
+            pElement.style.textAlign = "center";
+            pElement.style.padding = "4px";
+            pElement.style.borderRadius = "15px";
+            pElement.style.backgroundColor = "#016FF2";
+            pElement.style.fontSize = "7px";
+            pElement.style.transition = "box-shadow 0.1s linear";
+            pElement.style.msUserSelect = "none";
+            pElement.style.webkitUserSelect = "none";
+            pElement.style.userSelect = "none";
+        };
+
+        /*
+            28-Marzo-2019
+            Retorna el atributo _yearPicker del objeto
+            Argumentos: ninguno
+            Retorna elemento Select
+        */
+        getYearPicker(){
+            return _yearPicker.get(this);
+        }
+
+        fillTd(year, month){
+            let tdVar;
+            for(let i = 3, j = DateUtilities.getDayFromYear(year, month, 1), k = 1; k <= DateUtilities.getDaysOfMonth(year, month);){
+                tdVar = this.getCalendarReference().rows[i].cells[j];
+                if(this.getSelectedYear() === DateUtilities.getCurrentYear() && this.getMonthTh().innerHTML === DateUtilities.getMonthString(DateUtilities.getCurrentMonth())
+                    && k === DateUtilities.getCurrentDay()){
+                    let divVar = document.createElement("div");
+                    Calendar.stylizeCurrentDate(divVar);
+                    divVar.appendChild(document.createTextNode("" + k));
+                    tdVar.appendChild(divVar);
+                }
+                else{
+                    tdVar.innerHTML = "" + k;
+                }
+                j++; k++;
+                if(j === 7){
+                    j = 0; i++;
+                }
+            }
+        };
 
         /*
             13-Marzo-2019
-            Agrega listener para detectar cambio de año en el input y actualiza el calendario en dicho caso
+            Actualiza los listeners de las celdas del calendario.
+            Asigna listeners si la celda contiene información
+            Borra listeners si la celda no contiene información
             Argumentos: ninguno
             Void
         */
-        setInputChange(){
-            let object = this;
-            this.getSelectedYear().addEventListener("change", function(){
-                object.updateCalendar(object.getSelectedYear(), DateUtilities.getMonthNumber(object.getMonthTh().innerHTML));
-            })
-        };
-
-
-
-        /*
-            11-Marzo-2019
-            Asigna listeners onMouseDown y onMouseUp a diversos elementos del calendario
-            Argumentos:
-                element = elemento a asignar;
-                color = color de cambio al clickar;
-            Void
-        */
-        setClickChange(element, color = ""){
-            if (element.className === "left"){
-                this.changeLeftMonth(element, color);
-            }
-            else if(element.className === "right"){
-                this.changeRightMonth(element, color)
-            }
-            else{
-                this.getDateFromClick(element);
-            }
-
-
-            //Regresa al color original si se ingresa un color como entrada
-            if(color !== "") {
-                let originalColor = element.style.backgroundColor;
-                element.addEventListener("mouseup", function(){
-                    this.style.backgroundColor = originalColor;
-                });
-            }
-        };
-
-
-
-        /*
-            13-Marzo-2019
-            Agrega Listener a elemento A con className "left" para cambio de mes en el calendario
-            Argumentos:
-                element = elemento a asignar el Listener
-                color = cambio de color al clickar
-            Void
-        */
-        changeLeftMonth(element, color){
-            let object = this;
-            element.addEventListener("mousedown", function(){
-                let year = object.getSelectedYear();
-                let month = DateUtilities.getMonthNumber(object.getMonthTh().innerHTML);
-                month--;
-                if(month === 0){
-                    year--;
-                    month = 12;
+        updateListenersTd(){
+            let tdVar;
+            for (let i = 3; i < 9; i++) {
+                for (let j = 0; j < 7; j++) {
+                    tdVar = this.getCalendarReference().rows[i].cells[j];
+                    if(tdVar.innerText !== ""){
+                        this.setHoverListeners(tdVar, "#595959");
+                        this.setClickChange(tdVar);
+                    }
+                    else{
+                        let elClone = tdVar.cloneNode(false);
+                        tdVar.parentNode.replaceChild(elClone, tdVar);
+                    }
                 }
-                object.getSelectedYear().selectedIndex = Calendar.getIndexYear(year);
-                object.updateCalendar(year, month);
-                this.style.backgroundColor = color;
-            });
+            }
         };
 
-
-
         /*
-            13-Marzo-2019
-            Agregar Listener a elemento A con className "right" para cambio de mes en el calendario
-            Argumentos:
-                element = elemento a asignar el Listener
-                color = cambio de color al hacer click
-            Void
-        */
-        changeRightMonth(element, color){
-            let object = this;
-            element.addEventListener("mousedown", function(){
-                let year = object.getSelectedYear();
-                let month = DateUtilities.getMonthNumber(object.getMonthTh().innerHTML);
-                month++;
-                if(month === 13){
-                    year++;
-                    month = 1;
-                }
-                object.getSelectedYear().selectedIndex = Calendar.getIndexYear(year);
-                object.updateCalendar(year, month);
-                this.style.backgroundColor = color;
-            });
-        };
-
-
-
-        /*
-            13-Marzo-2019
-            Agrega Listener a elemento Td para asignación de fecha al inputDate
-            Argumentos:
-                element = elemento a asignar el Listener
-            Void
-        */
-        getDateFromClick(element){
-            let object = this;
-            element.addEventListener("mousedown", function (event) {
-                if (event.target !== this && event.target.tagName !== "DIV")
-                    return;
-                let auxVar = element.childNodes[0];
-                object.setDate((auxVar.tagName === "DIV" ? auxVar.innerText : auxVar.nodeValue) +
-                    "/" + object.getMonthTh().innerHTML + "/" + object.getSelectedYear());
-                object.setInputDate();
-                let inputX = object.getCalendarReference().previousElementSibling;
-                inputX.onclick = function(){
-                    inputOnClick(inputX);
-                };
-                object.getCalendarReference().style.display = "none";
-                object.getCalendarReference().parentNode.removeChild(object.getCalendarReference());
-                inputX.parentNode.parentNode.replaceChild(inputX, inputX.parentNode);
-            })
+        11-Marzo-2019
+        Crea elemento tr según el tipo de fila a crear.
+        Argumentos:
+                type = tipo de tr a crear ["year", "month", "days", "date", other]
+        Retorna elemento tr
+    */
+        createTr(type){
+            let trVar = document.createElement("tr");
+            switch (type) {
+                //Asigna nodos hijos a la fila del año del calendario
+                case "year":
+                    trVar.style.backgroundColor = "#3A4043";
+                    trVar.appendChild(Calendar.createTh(7).appendChild(this.createSel()).parentNode);
+                    this.setInputChange();
+                    break;
+                //Asigna nodos hijos a la fila del mes del calendario
+                case "month":
+                    trVar.style.backgroundColor = "#2E323F";
+                    trVar.appendChild(Calendar.createTh(1).appendChild(this.createA("&lt;", "javascript:", "left")).parentNode);
+                    this.setMonthTh(trVar.appendChild(Calendar.createTh(5)));
+                    trVar.appendChild(Calendar.createTh(1).appendChild(this.createA("&gt;", "javascript:", "right")).parentNode);
+                    break;
+                //Asigna nodos hijos a la fila de los días de la semana del calendario
+                case "days":
+                    trVar.style.backgroundColor = "#2E323F";
+                    for (let i = 0; i < 7; i++) {
+                        trVar.appendChild(Calendar.createTh(1, true, DateUtilities.getDayLetter(i)));
+                    }
+                    break;
+                //Asigna celdas de fecha al Tbody del calendario
+                case "date":
+                    trVar = document.createElement("tr");
+                    for (let i = 0; i < 7; i++) {
+                        trVar.appendChild(Calendar.createTd());
+                    }
+                    break;
+                default:
+                    return document.createElement("tr");
+            }
+            return trVar;
         };
 
 
@@ -853,40 +796,78 @@ let Calendar = (function(){
 
         };
 
+        /*
+            11-Marzo-2019
+            Crea elemento select y retorna su referencia
+            Argumentos: ninguno
+            Retorna elemento select
+        */
+        createSel(){
+            let selectBox, options;
 
+            //Creación y asignación de estilo de la caja de selección de año
+            selectBox = document.createElement("select");
+            selectBox.name = "birth-year";
+            selectBox.className = "yearSelection";
+            this.stylizeSel(selectBox);
 
-        /*********************************************  Hojas de estilo  *********************************************/
+            //Eventos del mouse para cambiar el estilo de la caja de selección
 
+            //Adjunta las posibles opciones de la caja de selección del año
+            for(let i = DateUtilities.getCurrentYear() + ADD_YEAR; i !== 1950; i--){
+                options = document.createElement("option");
+                options.value = options.innerHTML = "" + i;
+                if (i === DateUtilities.getCurrentYear()){
+                    options.setAttribute("selected", null);
+                }
+                options.style.color = "black";
+                selectBox.appendChild(options);
+            }
+            this.setYearPicker(selectBox);
 
-        static stylizeTh(thElement){
-            thElement.style.height = "30px";
-            thElement.style.fontSize = "35px";
-            thElement.style.color = "white";
-            thElement.style.msUserSelect = "none";
-            thElement.style.webkitUserSelect = "none";
-            thElement.style.userSelect = "none";
+            return selectBox;
         };
-
-
 
         /*
             13-Marzo-2019
-            Estiliza elementos Td del calendario
-            Argumentos:
-                tdElement = referencia al elemento Td a estilizar
+            Agrega listener para detectar cambio de año en el input y actualiza el calendario en dicho caso
+            Argumentos: ninguno
             Void
         */
-        static stylizeTd(tdElement){
-            tdElement.style.padding = "0.5em 0";
-            tdElement.style.height = "40px";
-            tdElement.style.fontSize = "20px";
-            tdElement.style.backgroundColor = "#3A4043";
-            tdElement.style.textAlign = "center";
-            tdElement.style.verticalAlign = "top";
-            tdElement.style.color = "white";
-            tdElement.style.msUserSelect = "none";
-            tdElement.style.webkitUserSelect = "none";
-            tdElement.style.userSelect = "none";
+        setInputChange(){
+            let object = this;
+            this.getYearPicker().addEventListener("change", function(){
+                object.updateCalendar(object.getSelectedYear(), DateUtilities.getMonthNumber(object.getMonthTh().innerHTML));
+            })
+        };
+
+        /*
+            11-Marzo-2019
+            Asigna listeners onMouseDown y onMouseUp a diversos elementos del calendario
+            Argumentos:
+                element = elemento a asignar;
+                color = color de cambio al hacer click;
+            Void
+        */
+        setClickChange(element, color = ""){
+            if (element.className === "left"){
+                this.changeLeftMonth(element, color);
+            }
+            else if(element.className === "right"){
+                this.changeRightMonth(element, color)
+            }
+            else{
+                this.getDateFromClick(element);
+            }
+
+
+            //Regresa al color original si se ingresa un color como entrada
+            if(color !== "") {
+                let originalColor = element.style.backgroundColor;
+                element.addEventListener("mouseup", function(){
+                    this.style.backgroundColor = originalColor;
+                });
+            }
         };
 
 
@@ -912,42 +893,52 @@ let Calendar = (function(){
             divElement.style.userSelect = "none";
         };
 
-
+        /*
+            13-Marzo-2019
+            Agrega Listener a elemento A con className "left" para cambio de mes en el calendario
+            Argumentos:
+                element = elemento a asignar el Listener
+                color = cambio de color al hacer click
+            Void
+        */
+        changeLeftMonth(element, color){
+            let object = this;
+            element.addEventListener("mousedown", function(){
+                let year = object.getSelectedYear();
+                let month = DateUtilities.getMonthNumber(object.getMonthTh().innerHTML);
+                month--;
+                if(month === 0){
+                    year--;
+                    month = 12;
+                }
+                object.getYearPicker().selectedIndex = Calendar.getIndexYear(year);
+                object.updateCalendar(year, month);
+                this.style.backgroundColor = color;
+            });
+        };
 
         /*
             13-Marzo-2019
-            Estiliza Tabla que contiene el calendario
+            Agregar Listener a elemento A con className "right" para cambio de mes en el calendario
             Argumentos:
-                tableElement = referencia al elemento Table a estilizar
+                element = elemento a asignar el Listener
+                color = cambio de color al hacer click
             Void
         */
-        static stylizeTable(tableElement){
-            tableElement.style.position = "absolute";
-            tableElement.style.display = "none";
-            tableElement.style.tableLayout = "fixed";
-            tableElement.style.width = "35%";
-            tableElement.style.height = "auto";
-            tableElement.style.borderRadius = "15px";
-            tableElement.style.borderCollapse = "collapse";
-            tableElement.style.backgroundColor = "transparent";
-            tableElement.style.fontFamily = "'Overpass', sans-serif";
-        };
-
-
-
-        /*
-            14-Marzo-2019
-            Estiliza elementos Input dentro del calendario
-            Argumentos:
-                inputElement = referencia al elemento input a estilizar
-            Void
-        */
-        static stylizeInput(inputElement) {
-            inputElement.style.width = "95%";
-            inputElement.style.backgroundColor = "rgb(150, 150, 150)";
-            inputElement.style.border = "2px black";
-            inputElement.style.borderRadius = "10px";
-            inputElement.style.transition = "0.4s";
+        changeRightMonth(element, color){
+            let object = this;
+            element.addEventListener("mousedown", function(){
+                let year = object.getSelectedYear();
+                let month = DateUtilities.getMonthNumber(object.getMonthTh().innerHTML);
+                month++;
+                if(month === 13){
+                    year++;
+                    month = 1;
+                }
+                object.getYearPicker().selectedIndex = Calendar.getIndexYear(year);
+                object.updateCalendar(year, month);
+                this.style.backgroundColor = color;
+            });
         };
 
 
@@ -960,7 +951,6 @@ let Calendar = (function(){
             Void
         */
         stylizeA(aElement){
-
             aElement.style.margin = "2%";
             aElement.style.padding = "0.3em 0.2em 0.1em";
             aElement.style.color = "white";
@@ -987,7 +977,30 @@ let Calendar = (function(){
             }
         };
 
-
+        /*
+            13-Marzo-2019
+            Agrega Listener a elemento Td para asignación de fecha al inputDate
+            Argumentos:
+                element = elemento a asignar el Listener
+            Void
+        */
+        getDateFromClick(element){
+            let object = this;
+            element.onmousedown = function (event) {
+                if ((event.target !== this && event.target.tagName !== "DIV") || !Calendar.detectLeftButton(event))
+                    return;
+                let auxVar = element.childNodes[0];
+                object.setDate((auxVar.tagName === "DIV" ? auxVar.innerText : auxVar.nodeValue) +
+                    "/" + object.getMonthTh().innerHTML + "/" + object.getSelectedYear());
+                object.setInputDate();
+                let inputX = object.getCalendarReference().previousElementSibling;
+                inputX.onclick = function(){
+                    generateCalendar(inputX);
+                };
+                object.getCalendarReference().parentNode.removeChild(object.getCalendarReference());
+                inputX.parentNode.parentNode.replaceChild(inputX, inputX.parentNode);
+            }
+        };
 
         /*
             13-Marzo-2019
@@ -1007,7 +1020,7 @@ let Calendar = (function(){
             selElement.style.color = "transparent";
             selElement.style.textShadow = "2px 2px #FFF";
             selElement.style.fontSize = "inherit";
-            selElement.style.margin = "20px";
+            selElement.style.margin = "10px";
             selElement.style.overflow = "hidden";
             selElement.style.padding = "1px 10px 5px 5px";
             selElement.style.textOverflow = "ellipsis";
@@ -1026,28 +1039,6 @@ let Calendar = (function(){
                 this.style.backgroundColor = "inherit";
             }
         };
-
-
-
-        /*
-            14-Marzo-2019
-            Estiliza elementos P del calendario
-            Argumentos:
-                pElement = referencia al elemento P a estilizar
-            Void
-        */
-        static stylizeP(pElement){
-            pElement.style.width = "70%";
-            pElement.style.marginLeft = "10%";
-            pElement.style.padding = "5px";
-            pElement.style.borderRadius = "15px";
-            pElement.style.backgroundColor = "#016FF2";
-            pElement.style.fontSize = "13px";
-            pElement.style.transition = "box-shadow 0.1s linear";
-            pElement.style.msUserSelect = "none";
-            pElement.style.webkitUserSelect = "none";
-            pElement.style.userSelect = "none";
-        };
         /***************Fin Hojas de estilo***************/
 
 
@@ -1065,7 +1056,11 @@ let Calendar = (function(){
         (static) dateElem: Objeto Date que obtiene la fecha actual
 */
 class DateUtilities {
-    static dateElem = new Date();
+
+
+    static get dateElem(){
+        return new Date();
+    }
 
     /*
         10-Marzo-2019
