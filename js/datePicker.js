@@ -43,8 +43,296 @@ function inputOnClick(inputElem){
         monthTh = referencia al elemento th que contiene al mes seleccionado
         date = cadena que contiene la fecha del último dia clickado
         reminderArray = arreglo conteniendo recordatorios agregados.
-            {diaDeRecordatorio, mesDeRecordatorio, añoDeRecordatorio, recordatorio}
+                        {diaDeRecordatorio, mesDeRecordatorio, añoDeRecordatorio, recordatorio}
 */
+
+let Calendar = (function(){
+    const addYear = 30;     //Límite de años superior a agregar al selector de año
+
+    let _calendarReference = new WeakMap();
+    let _yearPicker = new WeakMap();
+    let _monthTh = new WeakMap();
+    let _date = new WeakMap();
+    let _reminderArray = new WeakMap();
+
+    class Calendar {
+        constructor() {
+            let calendar = this.createTable();
+            calendar.className = "datePicker";
+            calendar.appendChild(this.createThead());
+            calendar.appendChild(this.createTbody());
+
+            _calendarReference.set(this, calendar);
+            updateCalendar(getCurrentYear(), getCurrentMonth());
+        }
+
+
+        /*
+        13-Marzo-2019
+        Agrega el valor de entrada al atributo _reminderArray
+        Argumentos:
+            value = valor de entrada a agregar
+        Void
+        */
+        pushValueReminder(value){
+            _reminderArray.get(this).push(value);
+        };
+
+
+
+        /*
+           13-Marzo-2019
+           Elimina el indice ingresado del arreglo _reminderArray
+           Argumentos:
+               index = indice del valor a eliminar
+           Void
+        */
+        popValueReminder(index){
+            _reminderArray.get(this).splice(index, 1);
+        };
+
+
+
+        /*
+           13-Marzo-2019
+           Busca el recordatorio ingresado dentro del arreglo _reminderArray y devuelve su indice
+           Argumentos:
+               reminder = valor recordatorio a buscar
+           Si el recordatorio se encuentra dentro del arreglo, retorna indice del recordatorio ingresado;
+           sino, retorna -1
+        */
+        getIndexOfReminder(reminder){
+            for (let i = 0, arr = this.getReminderArray(); i < arr.length; i++) {
+                if (arr[i][0] === reminder[0] && arr[i][1] === reminder[1]
+                    && arr[i][2] === reminder[2] && arr[i][3] === reminder[3]){
+                    return i;
+                }
+            }
+            return -1;
+        };
+
+
+
+        /*
+            13-Marzo-2019
+            Retorna referencia del calendario
+            Argumentos: ninguno
+            Retorna elemento calendario
+        */
+        getCalendarReference(){
+            return _calendarReference.get(this);
+        };
+
+
+
+        /*
+            13-Marzo-2019
+            Retorna arreglo de recordatorios
+            Argumentos: ninguno
+            Retorna atributo reminderArray
+        */
+        getReminderArray(){
+            return _reminderArray.get(this);
+        };
+
+
+
+        /*
+            13-Marzo-2019
+            Busca año actual seleccionado
+            Argumentos: ninguno
+            Retorna año seleccionado en el picker
+        */
+        getPickerYear = function(){
+            return getCurrentYear() + addYear - _yearPicker.get(this).selectedIndex;
+        };
+
+
+        /*
+            13-Marzo-2019
+            Regresa referencia del Th que contiene al mes
+            Argumentos: ninguno
+            Retorna elemento Th
+        */
+        getMonthTh(){
+            return _monthTh.get(this);
+        };
+
+
+        /*
+            13-Marzo-2019
+            Regresa index del año actual dentro del picker
+            Argumentos: ninguno
+            Retorna entero del año actual
+        */
+        static getIndexYear(year){
+            return getCurrentYear() + addYear - year;
+        };
+
+
+        /*
+            28-Marzo-2019
+            Modifica el atributo Date del objeto Calendar
+            Argumentos:
+                newDate = valor nuevo para el atributo
+            Void
+        */
+        setDate(newDate){
+            _date.set(this, newDate);
+        };
+
+
+
+        /*
+            11-Marzo-2019
+            Actualiza calendario
+            Argumentos:
+                year = año a actualizar
+                month = mes a actualizar
+            Void
+        */
+        updateCalendar(year, month){
+            this.getCalendarReference().rows[1].cells[1].innerHTML = getMonthString(month);
+            this.clearTd();
+            this.fillTd(year, month);
+            this.updateListenersTd();
+            this.hideUnusedTr();
+            this.refreshReminders();
+        };
+
+
+
+        /*
+            13-Marzo-2019
+            Limpia las celdas del calendario
+            Argumentos: ninguno
+            Void
+        */
+        clearTd(){
+            for (let i = 3; i < 9; i++) {
+                for (let j = 0; j < 7; j++) {
+                    this.getCalendarReference().rows[i].cells[j].innerHTML = "";
+                }
+            }
+        };
+
+
+
+        /*
+            13-Marzo-2019
+            Llena las celdas del calendario dependiendo del año y mes
+            Argumentos:
+                year = año de entrada
+                month = día de entrada
+            Void
+        */
+
+        fillTd(year, month){
+            let tdvar;
+            for(let i = 3, j = getDayFromYear(year, month, 1), k = 1; k <= getDaysOfMonth(year, month);){
+                tdvar = this.getCalendarReference.rows[i].cells[j];
+                if(this.getPickerYear() === getCurrentYear() && this.getMonthTh().innerHTML === getMonthString(getCurrentMonth())
+                    && k === getCurrentDay()){
+                    let divVar = document.createElement("div");
+                    this.stylizeCurrentDate(divVar);
+                    divVar.appendChild(document.createTextNode("" + k));
+                    tdvar.appendChild(divVar);
+                }
+                else{
+                    tdvar.innerHTML = "" + k;
+                }
+                j++; k++;
+                if(j === 7){
+                    j = 0; i++;
+                }
+            }
+        };
+
+
+
+        /*
+            13-Marzo-2019
+            Actualiza los listeners de las celdas del calendario.
+            Asigna listeners si la celda contiene información
+            Borra listeners si la celda no contiene información
+            Argumentos: ninguno
+            Void
+        */
+        updateListenersTd(){
+            let tdvar;
+            for (let i = 3; i < 9; i++) {
+                for (let j = 0; j < 7; j++) {
+                    tdvar = this.getCalendarReference.rows[i].cells[j];
+                    if(tdvar.innerText !== ""){
+                        this.setHoverListeners(tdvar, "rgba(255, 255, 255, 0.2)");
+                        this.setClickChange(tdvar);
+                    }
+                    else{
+                        let elClone = tdvar.cloneNode(false);
+                        tdvar.parentNode.replaceChild(elClone, tdvar);
+                    }
+                }
+            }
+        };
+
+
+
+        /*
+            13-Marzo-2019
+            Oculta filas vacías
+            Argumentos: ninguno
+            Void
+        */
+        hideUnusedTr(){
+            let cal = this.getCalendarReference();
+            if(cal.rows[8].cells[0].innerHTML === ""){
+                cal.rows[8].style.display = "none";
+            }
+            else {
+                cal.rows[8].style.display = "contents";
+            }
+        };
+
+
+
+        /*
+            11-Marzo-2019
+            Crea tabla y estilo de tabla
+            Argumentos: ninguno
+            Retorna elemento tabla
+        */
+        createTable(){
+            let calendario = document.createElement("table");
+
+            //Estilización del calendario.
+            this.stylizeTable(calendario);
+
+            calendario.className = "datePicker";
+            return calendario;
+        };
+
+
+
+        /*
+            11-Marzo-2019
+            Crea elemento thead y retorna su referencia.
+            Argumentos: ninguno
+            Retorna elemento thead
+        */
+        createThead(){
+            let thead = document.createElement("thead");
+            thead.appendChild(this.createTr("year"));
+            thead.appendChild(this.createTr("month"));
+            thead.appendChild(this.createTr("days"));
+            return thead;
+        };
+
+    }
+
+
+
+
+})();
 function Calendar(){
     let calendarReference;
     let yearPicker;
