@@ -1,4 +1,3 @@
-const addYear = 30;     //Límite de años superior a agregar al selector de año
 let dateElem = new Date();      //Objeto Date para obtener la fecha actual
 
 
@@ -38,16 +37,16 @@ function inputOnClick(inputElem){
     13-Marzo-2019
     Objeto Calendar que describe el módulo del calendario
     Atributos:
-        calendarReference = referencia al elemento Calendario dentro del objeto
-        yearPicker = referencia al elemento Select para seleccionar el año en el calendario
-        monthTh = referencia al elemento th que contiene al mes seleccionado
-        date = cadena que contiene la fecha del último dia clickado
-        reminderArray = arreglo conteniendo recordatorios agregados.
+        _calendarReference = referencia al elemento Calendario dentro del objeto
+        _yearPicker = referencia al elemento Select para seleccionar el año en el calendario
+        _monthTh = referencia al elemento th que contiene al mes seleccionado
+        _date = cadena que contiene la fecha del último dia al que se le hizo click
+        _reminderArray = arreglo conteniendo recordatorios agregados.
                         {diaDeRecordatorio, mesDeRecordatorio, añoDeRecordatorio, recordatorio}
 */
 
 let Calendar = (function(){
-    const addYear = 30;     //Límite de años superior a agregar al selector de año
+    const ADD_YEAR = 30;     //Límite de años superior a agregar al selector de año
 
     let _calendarReference = new WeakMap();
     let _yearPicker = new WeakMap();
@@ -57,13 +56,13 @@ let Calendar = (function(){
 
     class Calendar {
         constructor() {
-            let calendar = this.createTable();
+            let calendar = Calendar.createTable();
             calendar.className = "datePicker";
             calendar.appendChild(this.createThead());
             calendar.appendChild(this.createTbody());
 
             _calendarReference.set(this, calendar);
-            updateCalendar(getCurrentYear(), getCurrentMonth());
+            this.updateCalendar(getCurrentYear(), getCurrentMonth());
         }
 
 
@@ -112,6 +111,17 @@ let Calendar = (function(){
         };
 
 
+        /*
+            28-Marzo-2019
+            Regresa el valor del atributo _date
+            Argumentos: ninguno
+            retorna String
+        */
+        getDate(){
+            return _date.get(this);
+        }
+
+
 
         /*
             13-Marzo-2019
@@ -144,7 +154,7 @@ let Calendar = (function(){
             Retorna año seleccionado en el picker
         */
         getPickerYear = function(){
-            return getCurrentYear() + addYear - _yearPicker.get(this).selectedIndex;
+            return getCurrentYear() + ADD_YEAR - _yearPicker.get(this).selectedIndex;
         };
 
 
@@ -166,7 +176,7 @@ let Calendar = (function(){
             Retorna entero del año actual
         */
         static getIndexYear(year){
-            return getCurrentYear() + addYear - year;
+            return getCurrentYear() + ADD_YEAR - year;
         };
 
 
@@ -181,6 +191,30 @@ let Calendar = (function(){
             _date.set(this, newDate);
         };
 
+
+
+        /*
+            28-Marzo-2019
+            Modifica la referencia al Th que contiene el mes del calendario
+            Argumentos:
+                newTh = nueva referencia para el atributo _setMonthTh
+            Void
+        */
+        setMonthTh(newTh){
+            _monthTh.set(this, newTh);
+        }
+
+
+        /*
+            28-Marzo-2019
+            Modifica la referencia al select que contiene el año del calendario
+            Argumentos:
+                newSel = nueva referencia para el atributo _yearPicker
+            Void
+        */
+        setYearPicker(newSel){
+            _yearPicker.set(this, newSel);
+        }
 
 
         /*
@@ -228,18 +262,18 @@ let Calendar = (function(){
         */
 
         fillTd(year, month){
-            let tdvar;
+            let tdVar;
             for(let i = 3, j = getDayFromYear(year, month, 1), k = 1; k <= getDaysOfMonth(year, month);){
-                tdvar = this.getCalendarReference.rows[i].cells[j];
+                tdVar = this.getCalendarReference.rows[i].cells[j];
                 if(this.getPickerYear() === getCurrentYear() && this.getMonthTh().innerHTML === getMonthString(getCurrentMonth())
                     && k === getCurrentDay()){
                     let divVar = document.createElement("div");
-                    this.stylizeCurrentDate(divVar);
+                    Calendar.stylizeCurrentDate(divVar);
                     divVar.appendChild(document.createTextNode("" + k));
-                    tdvar.appendChild(divVar);
+                    tdVar.appendChild(divVar);
                 }
                 else{
-                    tdvar.innerHTML = "" + k;
+                    tdVar.innerHTML = "" + k;
                 }
                 j++; k++;
                 if(j === 7){
@@ -301,11 +335,11 @@ let Calendar = (function(){
             Argumentos: ninguno
             Retorna elemento tabla
         */
-        createTable(){
+        static createTable(){
             let calendario = document.createElement("table");
 
             //Estilización del calendario.
-            this.stylizeTable(calendario);
+            Calendar.stylizeTable(calendario);
 
             calendario.className = "datePicker";
             return calendario;
@@ -327,12 +361,702 @@ let Calendar = (function(){
             return thead;
         };
 
+
+
+        /*
+            11-Marzo-2019
+            Crea elemento tbody y retorna su referencia.
+            Argumentos: ninguno
+            Retorna elemento tbody
+        */
+        createTbody(){
+            let tbody = document.createElement("tbody");
+            for (let i = 0; i < 6; i++) {
+                tbody.appendChild(this.createTr("date"));
+            }
+            return tbody;
+        };
+
+
+
+        /*
+            11-Marzo-2019
+            Crea elemento th y retorna su referencia.
+            Argumentos:
+                colspan = numero de columnas a abarcar
+                isDays = indica si el Th es el encabezado de días o no
+            Retorna elemento th
+        */
+        static createTh(colspan, isDays = false, innerHtml = ""){
+            let thVar = document.createElement("th");
+            thVar.setAttribute("colspan", colspan);
+            Calendar.stylizeTh(thVar);
+
+            if (isDays) {
+                thVar.style.height = "70px";
+                thVar.style.fontSize = "30px";
+            }
+            if (innerHtml !== ""){
+                thVar.appendChild(document.createTextNode(innerHtml));
+            }
+
+            return thVar;
+        };
+
+
+
+        /*
+        11-Marzo-2019
+        Crea elemento tr según el tipo de fila a crear.
+        Argumentos:
+                type = tipo de tr a crear ["year", "month", "days", "date", other]
+        Retorna elemento tr
+    */
+        createTr(type){
+            let trVar = document.createElement("tr");
+            switch (type) {
+                //Asigna nodos hijos a la fila del año del calendario
+                case "year":
+                    trVar.style.backgroundColor = "#3A4043";
+                    trVar.appendChild(Calendar.createTh(7).appendChild(this.createSel()).parentNode);
+                    this.setInputChange();
+                    break;
+                //Asigna nodos hijos a la fila del mes del calendario
+                case "month":
+                    trVar.style.backgroundColor = "#2E323F";
+                    trVar.appendChild(Calendar.createTh(1).appendChild(this.createA("&lt;", "javascript:", "left")).parentNode);
+                    this.setMonthTh(this, trVar.appendChild(Calendar.createTh(5)));
+                    trVar.appendChild(Calendar.createTh(1).appendChild(this.createA("&gt;", "javascript:", "right")).parentNode);
+                    break;
+                //Asigna nodos hijos a la fila de los días de la semana del calendario
+                case "days":
+                    trVar.style.backgroundColor = "#2E323F";
+                    for (let i = 0; i < 7; i++) {
+                        trVar.appendChild(Calendar.createTh(1, true, getDayLetter(i)));
+                    }
+                    break;
+                //Asigna celdas de fecha al Tbody del calendario
+                case "date":
+                    trVar = document.createElement("tr");
+                    for (let i = 0; i < 7; i++) {
+                        trVar.appendChild(Calendar.createTd());
+                    }
+                    break;
+                default:
+                    return document.createElement("tr");
+            }
+            return trVar;
+        };
+
+
+
+        /*
+            12-Marzo-2019
+            Crea elemento td y retorna su referencia
+            Argumentos: ninguno
+            Retorna elemento td
+        */
+        static createTd(){
+            let tdvar = document.createElement("td");
+            Calendar.stylizeTd(tdvar);
+            return tdvar;
+        };
+
+
+
+        /*
+            11-Marzo-2019
+            Crea elemento select y retorna su referencia
+            Argumentos: ninguno
+            Retorna elemento select
+        */
+        createSel(){
+            let selectBox, options;
+
+            //Creación y asignación de estilo de la caja de selección de año
+            selectBox = document.createElement("select");
+            selectBox.name = "birth-year";
+            selectBox.className = "yearSelection";
+
+            //Eventos del mouse para cambiar el estilo de la caja de selección
+            //this.setHoverListeners(selectBox, "rgba(255, 255, 255, 0.1)");
+
+            //Adjunta las posibles opciones de la caja de selección del año
+            for(let i = getCurrentYear() + ADD_YEAR; i !== 1900; i--){
+                options = document.createElement("option");
+                options.value = options.innerHTML = "" + i;
+                if (i === getCurrentYear()){
+                    options.setAttribute("selected", null);
+                }
+                selectBox.appendChild(options);
+            }
+            this.setYearPicker(selectBox);
+            this.stylizeSel(selectBox);
+            return selectBox;
+        };
+
+
+
+        /*
+            11-Marzo-2019
+            Crea elemento a y retorna su referencia
+            Argumentos: ninguno
+            Retorna elemento a
+        */
+        createA(text, href, className){
+            let saverLink;
+
+            //Creación y asignación de estilo del elemento utilizado para los botones del calendario
+            saverLink = document.createElement("a");
+            saverLink.href = href;
+            saverLink.innerHTML = text;
+            saverLink.href = href;
+            saverLink.className = className;
+
+            this.stylizeA(saverLink);
+
+            this.setClickChange(saverLink, "rgb(70, 70, 70)"); //Asigna evento Click al link
+
+            return saverLink;
+        };
+
+
+
+        /*
+            11-Marzo-2019
+            Crea elemento P y retorna su referencia
+            Argumentos:
+                str = cadena a asignar al elemento P
+            Retorna elemento P
+        */
+        createP(str){
+            let pSaver = document.createElement("p");
+            pSaver.appendChild(document.createTextNode(str));
+            Calendar.stylizeP(pSaver);
+            this.setTextReminderEvent(pSaver);
+            this.setEditDeleteP(pSaver);
+            return pSaver;
+        };
+
+
+
+        /*
+            10-marzo-2019
+            Coloca los recordatorios guardados dentro del arreglo de recordatorios en el calendario.
+            Sin argumentos de entrada
+            Void
+        */
+        refreshReminders(){
+            this.getReminderArray().forEach(element =>{
+                let month, year;
+                if(getMonthNumber(element[1]) === (month = getMonthNumber(this.getMonthTh().innerHTML)) &&
+                    element[2] === (year = this.getPickerYear())){
+                    let text = this.createP(element[3]);
+                    let row = 3 + Math.floor((parseInt(element[0]) + getDayFromYear(year, month, 1) - 1)/7);
+                    let cell = getDayFromYear(year, month, parseInt(element[0]));
+
+                    this.getCalendarReference().rows[row].cells[cell].appendChild(text);
+                }
+            })
+        };
+
+
+
+        /*
+            13-Marzo-2019
+            Agrega listener para detectar cambio de año en el input y actualiza el calendario en dicho caso
+            Argumentos: ninguno
+            Void
+        */
+        setInputChange(){
+            let object = this;
+            this.getPickerYear().addEventListener("change", function(){
+                object.updateCalendar(object.getPickerYear(), getMonthNumber(object.getMonthTh().innerHTML));
+            })
+        };
+
+
+
+        /*
+            11-Marzo-2019
+            Asigna listeners onMouseDown y onMouseUp a diversos elementos del calendario
+            Argumentos:
+                element = elemento a asignar;
+                color = color de cambio al clickar;
+            Void
+        */
+        setClickChange(element, color = ""){
+            if (element.className === "left"){
+                this.changeLeftMonth(element, color);
+            }
+            else if(element.className === "right"){
+                this.changeRightMonth(element, color)
+            }
+            else{
+                this.getDateFromClick(element);
+            }
+
+
+            //Regresa al color original si se ingresa un color como entrada
+            if(color !== "") {
+                let originalColor = element.style.backgroundColor;
+                element.addEventListener("mouseup", function(){
+                    this.style.backgroundColor = originalColor;
+                });
+            }
+        };
+
+
+
+        /*
+            13-Marzo-2019
+            Agrega Listener a elemento A con className "left" para cambio de mes en el calendario
+            Argumentos:
+                element = elemento a asignar el Listener
+                color = cambio de color al clickar
+            Void
+        */
+        changeLeftMonth(element, color){
+            let object = this;
+            element.addEventListener("mousedown", function(){
+                let year = object.getPickerYear();
+                let month = getMonthNumber(object.getMonthTh().innerHTML);
+                month--;
+                if(month === 0){
+                    year--;
+                    month = 12;
+                }
+                object.getPickerYear().selectedIndex = object.getIndexYear(year);
+                object.updateCalendar(year, month);
+                this.style.backgroundColor = color;
+            });
+        };
+
+
+
+        /*
+            13-Marzo-2019
+            Agregar Listener a elemento A con className "right" para cambio de mes en el calendario
+            Argumentos:
+                element = elemento a asignar el Listener
+                color = cambio de color al clickar
+            Void
+        */
+        changeRightMonth(element, color){
+            let object = this;
+            element.addEventListener("mousedown", function(){
+                let year = object.getPickerYear();
+                let month = getMonthNumber(object.getMonthTh().innerHTML);
+                month++;
+                if(month === 13){
+                    year++;
+                    month = 1;
+                }
+                object.getPickerYear().selectedIndex = object.getIndexYear(year);
+                object.updateCalendar(year, month);
+                this.style.backgroundColor = color;
+            });
+        };
+
+
+
+        /*
+            13-Marzo-2019
+            Agrega Listener a elemento Td para asignación de fecha al inputDate
+            Argumentos:
+                element = elemento a asignar el Listener
+            Void
+        */
+        getDateFromClick(element){
+            let object = this;
+            element.addEventListener("mousedown", function (event) {
+                if (event.target !== this && event.target.tagName !== "DIV")
+                    return;
+                let auxVar = element.childNodes[0];
+                object.setDate((auxVar.tagName === "DIV" ? auxVar.innerText : auxVar.nodeValue) +
+                    "/" + object.getMonthTh().innerHTML + "/" + object.getPickerYear());
+                object.setInputDate();
+                let inputX = object.getCalendarReference().previousElementSibling;
+                inputX.onclick = function(){
+                    inputOnClick(inputX);
+                };
+                object.getCalendarReference().style.display = "none";
+                object.getCalendarReference().parentNode.removeChild(object.getCalendarReference());
+                inputX.parentNode.parentNode.replaceChild(inputX, inputX.parentNode);
+            })
+        };
+
+
+
+        /*
+            11-Marzo-2019
+            Asigna listener para cambiar el color de elemento onHover
+            Argumentos:
+                element = elemento a asignar el Listener;
+                color = color de cambio;
+            Void
+        */
+        setHoverListeners(element, color){
+            let origColor = element.style.backgroundColor;
+            element.addEventListener("mouseenter", function () {
+                this.style.backgroundColor = color;
+            });
+            element.addEventListener("mouseleave", function () {
+                this.style.backgroundColor = origColor;
+            });
+            if (element.tagName === "TD"){
+                let object = this;
+                element.addEventListener("mouseenter", function () {
+                    if (object.getCalendarReference().getElementsByTagName("input").length === 0) {
+                        let inputSaver = document.createElement("input");
+                        object.stylizeInput(inputSaver);
+                        object.setInputReminderEvent(inputSaver);
+                        this.appendChild(inputSaver);
+                    }
+                });
+                element.addEventListener("mouseleave", function () {
+                    if (element.getElementsByTagName("input").length !== 0) {
+                        this.removeChild(this.getElementsByTagName("input")[0]);
+                    }
+                });
+            }
+        };
+
+
+
+        /*
+            13-Marzo-2019
+            Cambia valor del input asociado con el calendario
+            Argumentos: ninguno
+            Void
+        */
+        setInputDate(){
+            this.getCalendarReference().previousElementSibling.value = this.getDate();
+        };
+
+
+
+        /*
+            13-Marzo-2019
+            Agrega eventos de click al input asociado con el calendario
+            Argumentos: ninguno
+            Void
+        */
+        setInputEvent(){
+            let object = this;
+            this.getCalendarReference().previousElementSibling.onclick = function() {
+                object.getCalendarReference().style.display = "inline-table";
+            }
+        };
+
+
+        /*
+            13-Marzo-2019
+            Agrega eventos de click al input para agregar recordatorios
+            Argumentos:
+                inputElement = elemento al que se desean agregar los eventos
+            Void
+        */
+        setInputReminderEvent(inputElement){
+            let object = this;
+            inputElement.addEventListener("keyup", function (event) {
+                if (event.key === "Enter"){
+                    if(document.activeElement === this){
+                        if (!isEmpty(this.value)) {
+                            let textVar = object.createP(this.value);
+                            this.parentNode.replaceChild(textVar, this);
+                            let auxVar = textVar.parentNode.childNodes[0];
+                            object.pushValueReminder([
+                                auxVar.tagName === "DIV" ? auxVar.innerText : auxVar.nodeValue,
+                                object.getMonthTh().innerText,
+                                object.getPickerYear(), textVar.innerText
+                            ]);
+                            console.log(object.getReminderArray());
+                        }
+                        else {
+                            this.parentNode.replaceChild(this.cloneNode(false), this);
+                        }
+                    }
+
+                }
+            });
+        };
+
+
+
+        /*
+            13-Marzo-2019
+            Agrega eventos de click a text para seleccionar y eliminar recordatorios
+            Argumentos:
+                textElement = elemento Text al que se desean agregar los eventos
+            Void
+        */
+        setTextReminderEvent(textElement){
+
+            let arr = this.getCalendarReference().getElementsByTagName("p");
+
+            /*
+                Agrega habilitador de borrado al hacer click sobre el recordatorio
+                Argumentos: ninguno
+                Void
+             */
+            textElement.addEventListener("click", function(){
+                if (this.style.boxShadow === "red 0px 0px 0px 3px"){
+                    this.style.boxShadow = "0px 0px 0px 0px black";
+                }
+                else {
+                    for (let i = 0; i < arr.length; i++) {
+                        arr[i].style.boxShadow = "0px 0px 0px 0px black";
+                    }
+                    this.style.boxShadow = "0px 0px 0px 3px red";
+                }
+            });
+
+        };
+
+
+
+        /*
+            Agrega opciones de editar y borrar recordatorios en el calendario
+            Argumentos:
+            textElement = Elemento a asignar el evento
+            Void
+        */
+        setEditDeleteP(textElement){
+            let object = this;
+
+            textElement.addEventListener("dblclick", function(){
+                if (this.style.boxShadow === "red 0px 0px 0px 3px"){
+                    let index = object.getIndexOfReminder([
+                        this.parentNode.childNodes[0].nodeValue,
+                        object.getMonthTh().innerText,
+                        object.getPickerYear(), this.innerText
+                    ]);
+                    this.parentNode.removeChild(this);
+                    object.popValueReminder(index);
+                }
+                else{
+                    let index = object.getIndexOfReminder([
+                        this.parentNode.childNodes[0].nodeValue,
+                        object.getMonthTh().innerText,
+                        object.getPickerYear(), this.innerText
+                    ]);
+                    let inputSaver = document.createElement("input");
+                    object.popValueReminder(index);
+                    object.stylizeInput(inputSaver);
+                    inputSaver.value = this.innerText;
+                    object.setInputReminderEvent(inputSaver);
+                    this.parentNode.replaceChild(inputSaver, this);
+                }
+            })
+
+        };
+
+
+
+        /*********************************************  Hojas de estilo  *********************************************/
+
+
+        static stylizeTh(thElement){
+            thElement.style.height = "30px";
+            thElement.style.fontSize = "35px";
+            thElement.style.color = "white";
+            thElement.style.msUserSelect = "none";
+            thElement.style.webkitUserSelect = "none";
+            thElement.style.userSelect = "none";
+        };
+
+
+
+        /*
+            13-Marzo-2019
+            Estiliza elementos Td del calendario
+            Argumentos:
+                tdElement = referencia al elemento Td a estilizar
+            Void
+        */
+        static stylizeTd(tdElement){
+            tdElement.style.padding = "0.5em 0";
+            tdElement.style.height = "40px";
+            tdElement.style.fontSize = "20px";
+            tdElement.style.backgroundColor = "#3A4043";
+            tdElement.style.textAlign = "center";
+            tdElement.style.verticalAlign = "top";
+            tdElement.style.color = "white";
+            tdElement.style.msUserSelect = "none";
+            tdElement.style.webkitUserSelect = "none";
+            tdElement.style.userSelect = "none";
+        };
+
+
+
+        /*
+            13-Marzo-2019
+            Estiliza Td conteniendo fecha actual del sistema
+            Argumentos:
+                divElement = referencia al elemento Div a estilizar
+            Void
+        */
+        static stylizeCurrentDate(divElement){
+            divElement.style.backgroundColor = "rgba(255, 255, 255, 0.13)";
+            divElement.style.boxShadow = "rgba(0, 0, 0, 0.1) 2px 2px 8px 2px";
+            divElement.style.width = "70%";
+            divElement.style.borderRadius = "20px";
+            divElement.style.margin = "0 15%";
+            divElement.style.position = "relative";
+            divElement.style.top = "-5px";
+            divElement.style.paddingTop = "5px";
+            divElement.style.msUserSelect = "none";
+            divElement.style.webkitUserSelect = "none";
+            divElement.style.userSelect = "none";
+        };
+
+
+
+        /*
+            13-Marzo-2019
+            Estiliza Tabla que contiene el calendario
+            Argumentos:
+                tableElement = referencia al elemento Table a estilizar
+            Void
+        */
+        static stylizeTable(tableElement){
+            tableElement.style.position = "absolute";
+            tableElement.style.display = "none";
+            tableElement.style.tableLayout = "fixed";
+            tableElement.style.width = "35%";
+            tableElement.style.height = "auto";
+            tableElement.style.borderRadius = "15px";
+            tableElement.style.borderCollapse = "collapse";
+            tableElement.style.backgroundColor = "transparent";
+            tableElement.style.fontFamily = "'Overpass', sans-serif";
+        };
+
+
+
+        /*
+            14-Marzo-2019
+            Estiliza elementos Input dentro del calendario
+            Argumentos:
+                inputElement = referencia al elemento input a estilizar
+            Void
+        */
+        static stylizeInput(inputElement) {
+            inputElement.style.width = "95%";
+            inputElement.style.backgroundColor = "rgb(150, 150, 150)";
+            inputElement.style.border = "2px black";
+            inputElement.style.borderRadius = "10px";
+            inputElement.style.transition = "0.4s";
+        };
+
+
+
+        /*
+            13-Marzo-2019
+            Estiliza elementos A del calendario
+            Argumentos:
+                aElement = referencia al elemento A a estilizar
+            Void
+        */
+        stylizeA(aElement){
+
+            aElement.style.margin = "2%";
+            aElement.style.padding = "0.3em 0.2em 0.1em";
+            aElement.style.color = "white";
+            aElement.style.borderRadius = "15px";
+            aElement.style.fontSize = "1.1em";
+            aElement.style.backgroundColor = "#016FF2";
+            aElement.style.textDecoration = "none";
+            aElement.style.display = "block";
+            aElement.style.transition = "0.2s";
+            aElement.style.boxShadow = "black";
+            aElement.style.msUserSelect = "none";
+            aElement.style.webkitUserSelect = "none";
+            aElement.style.userSelect = "none";
+
+            this.setHoverListeners(aElement, "rgb(90, 90, 90)"); //Asigna evento Hover al link
+
+
+            aElement.onfocus = function(){                  //Elimina líneas de contorno al hacer click
+                this.style.outline = "none";
+                this.style.backgroundColor = "rgb(90, 90, 90)";
+            };
+            aElement.onblur = function(){
+                this.style.backgroundColor = "#016FF2";
+            }
+        };
+
+
+
+        /*
+            13-Marzo-2019
+            Estiliza elementos Select del calendario
+            Argumentos:
+                selElement = referencia al elemento Select a estilizar
+            Void
+        */
+        stylizeSel(selElement){
+            selElement.style.webkitAppearance = "button";
+            selElement.style.webkitBorderRadius = "2px";
+            selElement.style.boxShadow = "rgba(0, 0, 0, 0.2) 2px 2px 10px 5px";
+            selElement.style.webkitUserSelect = "none";
+            selElement.style.textAlign = "center";
+            selElement.style.border = "0px solid #AAA";
+            selElement.style.borderRadius = "10px";
+            selElement.style.color = "transparent";
+            selElement.style.textShadow = "2px 2px #FFF";
+            selElement.style.fontSize = "inherit";
+            selElement.style.margin = "20px";
+            selElement.style.overflow = "hidden";
+            selElement.style.padding = "1px 10px 5px 5px";
+            selElement.style.textOverflow = "ellipsis";
+            selElement.style.whiteSpace = "nowrap";
+            selElement.style.width = "35%";
+            selElement.style.backgroundColor = "inherit";
+            selElement.style.transition = "0.2s";
+            this.setHoverListeners(selElement, "rgba(0, 0, 0, 0.2");
+
+            selElement.onfocus = function(){                  //Elimina líneas de contorno al hacer click
+                this.style.outline = "none";
+                this.style.backgroundColor = "rgba(0, 0, 0, 0.2";
+            };
+
+            selElement.onblur = function(){
+                this.style.backgroundColor = "inherit";
+            }
+        };
+
+
+
+        /*
+            14-Marzo-2019
+            Estiliza elementos P del calendario
+            Argumentos:
+                pElement = referencia al elemento P a estilizar
+            Void
+        */
+        static stylizeP(pElement){
+            pElement.style.width = "70%";
+            pElement.style.marginLeft = "10%";
+            pElement.style.padding = "5px";
+            pElement.style.borderRadius = "15px";
+            pElement.style.backgroundColor = "#016FF2";
+            pElement.style.fontSize = "13px";
+            pElement.style.transition = "box-shadow 0.1s linear";
+            pElement.style.msUserSelect = "none";
+            pElement.style.webkitUserSelect = "none";
+            pElement.style.userSelect = "none";
+        };
+        /***************Fin Hojas de estilo***************/
+
+
+
     }
-
-
-
-
 })();
+
+
+
+
 function Calendar(){
     let calendarReference;
     let yearPicker;
@@ -1312,9 +2036,6 @@ function Calendar(){
     */
     this.generateCalendar();
 }
-
-
-
 /*--------------------------------Utilidades--------------------------------*/
 
 
@@ -1483,7 +2204,7 @@ function isLeap(year){
 
 /*
     12-Marzo-2019
-    Regresa letra del día de la semana según indice.
+    Regresa letra del día de la semana según el índice.
     Argumentos:
         day = numero de día a retornar
     Retorna la letra correspondiente al dia i
