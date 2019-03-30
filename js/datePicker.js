@@ -7,22 +7,21 @@ window.onload = function(){
     }
 };
 
-
-
 /*
-    Asigna un datePicker onclick a cada input en el documento con className "inputDate"
+    29-Marzo-2019
+    función utilizada como generador del calendario.
+    (Asignar solamente a elementos Input)
     Argumentos:
         inputElem = Input de entrada a asignar el elemento calendario
     Void
 */
-
 function generateCalendar(inputElem){
     let divVar = document.createElement("div");
     divVar.style.display = "inline-block";
     inputElem.parentNode.replaceChild(divVar, inputElem);
     divVar.appendChild(inputElem);
 
-    let cal = new Calendar();
+    let cal = new Calendar(inputElem.value);
     inputElem.parentNode.insertBefore(cal.getCalendarReference(), inputElem.nextSibling);
     cal.setInputEvent();
     cal.getCalendarReference().style.display = "inline-table";
@@ -30,12 +29,11 @@ function generateCalendar(inputElem){
 
 }
 
-
-
 /*
     13-Marzo-2019
     Objeto Calendar que describe el módulo del calendario
     Atributos:
+        const ADD_YEAR = número de años a sumar al año actual para definir el límite superior de años del Select
         _calendarReference = referencia al elemento Calendario dentro del objeto
         _yearPicker = referencia al elemento Select para seleccionar el año en el calendario
         _monthTh = referencia al elemento th que contiene al mes seleccionado
@@ -43,7 +41,6 @@ function generateCalendar(inputElem){
         _reminderArray = arreglo conteniendo recordatorios agregados.
                         {diaDeRecordatorio, mesDeRecordatorio, añoDeRecordatorio, recordatorio}
 */
-
 let Calendar = (function(){
     const ADD_YEAR = 30;     //Límite de años superior a agregar al selector de año
 
@@ -54,7 +51,8 @@ let Calendar = (function(){
     let _reminderArray = new WeakMap();
 
     class Calendar {
-        constructor() {
+        constructor(inputString) {
+            console.log(inputString);
             _reminderArray.set(this, []);
 
             let calendar = Calendar.createTable();
@@ -62,8 +60,19 @@ let Calendar = (function(){
             calendar.appendChild(this.createThead());
             calendar.appendChild(this.createTbody());
             _calendarReference.set(this, calendar);
+            this.setClickOutsideCalendar();
+            if(inputString !== ""){
+                console.log(Number.parseInt(inputString.split("/")[2]));
+                console.log(DateUtilities.getMonthNumber(inputString.split("/")[1]));
 
-            this.updateCalendar(DateUtilities.getCurrentYear(), DateUtilities.getCurrentMonth());
+                this.updateCalendar(
+                    Number.parseInt(inputString.split("/")[2]),
+                    DateUtilities.getMonthNumber(inputString.split("/")[1])
+                )
+            }
+            else{
+                this.updateCalendar(DateUtilities.getCurrentYear(), DateUtilities.getCurrentMonth());
+            }
         }
 
         /*
@@ -105,6 +114,17 @@ let Calendar = (function(){
         static getIndexYear(year){
             return DateUtilities.getCurrentYear() + ADD_YEAR - year;
         };
+
+        /*
+            29-Marzo-2019
+            Selecciona el año ingresado en el select del año en el calendario
+            Argumentos:
+                year = Año a seleccionar
+            Void
+        */
+        setSelectedYear(year){
+            this.getYearPicker().selectedIndex = Calendar.getIndexYear(year);
+        }
 
         /*
             13-Marzo-2019
@@ -231,6 +251,7 @@ let Calendar = (function(){
             Void
         */
         updateCalendar(year, month){
+            this.setSelectedYear(year);
             this.getCalendarReference().rows[1].cells[1].innerHTML = DateUtilities.getMonthString(month);
             this.clearTd();
             this.fillTd(year, month);
@@ -253,6 +274,13 @@ let Calendar = (function(){
             }
         };
 
+        /*
+            29-Marzo-2019
+            Detecta si el botón presionado en el evento es el click izquierdo
+            Argumentos:
+                event = evento a analiza
+             Retorna true si se presionó el click izquierdo. En caso contrario, retorna false.
+        */
         static detectLeftButton(event) {
             if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
                 return false;
@@ -734,6 +762,25 @@ let Calendar = (function(){
         };
 
         /*
+            29-Marzo-2019
+            Elimina el calendario al hacer click fuera de éste
+            Argumentos: Ninguno
+            Void
+        */
+        setClickOutsideCalendar(){
+            let object = this;
+            document.onmousedown = function(event){
+                let element = event.target;
+                if (!document.body.contains(object.getCalendarReference())){
+                    return
+                }
+                if(element.closest("table") !== object.getCalendarReference()){
+                    object.deleteCalendarFromDom();
+                }
+            }
+        }
+
+        /*
             13-Marzo-2019
             Agrega Listener a elemento A con className "left" para cambio de mes en el calendario
             Argumentos:
@@ -751,7 +798,7 @@ let Calendar = (function(){
                     year--;
                     month = 12;
                 }
-                object.getYearPicker().selectedIndex = Calendar.getIndexYear(year);
+                object.setSelectedYear(year);
                 object.updateCalendar(year, month);
                 this.style.backgroundColor = color;
             });
@@ -775,7 +822,7 @@ let Calendar = (function(){
                     year++;
                     month = 1;
                 }
-                object.getYearPicker().selectedIndex = Calendar.getIndexYear(year);
+                object.setSelectedYear(year);
                 object.updateCalendar(year, month);
                 this.style.backgroundColor = color;
             });
@@ -797,14 +844,19 @@ let Calendar = (function(){
                 object.setDate((auxVar.tagName === "DIV" ? auxVar.innerText : auxVar.nodeValue) +
                     "/" + object.getMonthTh().innerHTML + "/" + object.getSelectedYear());
                 object.setInputDate();
-                let inputX = object.getCalendarReference().previousElementSibling;
-                inputX.onclick = function(){
-                    generateCalendar(inputX);
-                };
-                object.getCalendarReference().parentNode.removeChild(object.getCalendarReference());
-                inputX.parentNode.parentNode.replaceChild(inputX, inputX.parentNode);
+                object.deleteCalendarFromDom();
             }
         };
+
+        deleteCalendarFromDom(){
+            let cal = this.getCalendarReference();
+            let inputX = cal.previousElementSibling;
+            inputX.onclick = function(){
+                generateCalendar(inputX);
+            };
+            cal.parentNode.removeChild(cal);
+            inputX.parentNode.parentNode.replaceChild(inputX, inputX.parentNode);
+        }
 
         /*********************************************  Hojas de estilo  *********************************************/
 
@@ -849,7 +901,7 @@ let Calendar = (function(){
         */
         static stylizeTd(tdElement){
             tdElement.style.padding = "0.5em 0";
-            tdElement.style.height = "40px";
+            tdElement.style.height = "20px";
             tdElement.style.fontSize = "12px";
             tdElement.style.backgroundColor = "#3A4043";
             tdElement.style.textAlign = "center";
@@ -889,14 +941,17 @@ let Calendar = (function(){
             Void
         */
         static stylizeInput(inputElement) {
-            inputElement.style.marginTop = "0.8em";
-            inputElement.style.height = "13px";
-            inputElement.style.fontSize = "10px";
-            inputElement.style.width = "95%";
-            inputElement.style.backgroundColor = "rgb(150, 150, 150)";
-            inputElement.style.border = "2px black";
+            inputElement.style.height = "6px";
+            inputElement.style.margin = "0.4em auto";
+            inputElement.style.width = "80%";
+            inputElement.style.textAlign = "center";
+            inputElement.style.padding = "2px";
             inputElement.style.borderRadius = "10px";
+            inputElement.style.fontSize = "6px";
+            inputElement.style.backgroundColor = "rgb(150, 150, 150)";
+            inputElement.style.border = "0px none";
             inputElement.style.transition = "0.4s";
+            inputElement.style.display = "block";
         };
 
         /*
@@ -907,14 +962,15 @@ let Calendar = (function(){
             Void
         */
         static stylizeP(pElement){
+            pElement.style.height = "6px";
             pElement.style.margin = "0% auto";
-            pElement.style.marginTop = "0.8em";
-            pElement.style.width = "70%";
+            pElement.style.marginTop = "0.4em";
+            pElement.style.width = "80%";
             pElement.style.textAlign = "center";
-            pElement.style.padding = "4px";
-            pElement.style.borderRadius = "15px";
+            pElement.style.padding = "2px";
+            pElement.style.borderRadius = "10px";
+            pElement.style.fontSize = "6px";
             pElement.style.backgroundColor = "#016FF2";
-            pElement.style.fontSize = "7px";
             pElement.style.transition = "box-shadow 0.1s linear";
             pElement.style.msUserSelect = "none";
             pElement.style.webkitUserSelect = "none";
@@ -994,9 +1050,6 @@ let Calendar = (function(){
         };
 
         /*******************************************  Fin Hojas de estilo  *******************************************/
-
-
-
     }
 
     return Calendar;
@@ -1005,6 +1058,7 @@ let Calendar = (function(){
 
 
 /*
++
     Objeto DateUtilities utilizado para organizar las funciones de fecha necesarias dentro del objeto Calendar
     Atributos:
         (static) dateElem: Objeto Date que obtiene la fecha actual

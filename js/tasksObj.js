@@ -16,10 +16,10 @@ function Enum(name, values) {
         }
     }
     const handler = {
-        set (obj, prop, value) {
+        set:  function() {
             throw new TypeError('Enum is read only');
         },
-        get (obj, prop) {
+        get: function(obj, prop) {
             if (prop === 'nameOf') {
                 return nameOf.bind(obj);
             }
@@ -28,7 +28,7 @@ function Enum(name, values) {
             }
             return Reflect.get(obj, prop);
         },
-        deleteProperty (obj, prop) {
+        deleteProperty: function() {
             throw new TypeError('Enum is read only');
         }
     };
@@ -36,12 +36,20 @@ function Enum(name, values) {
 }
 
 /*-------------------------------------------------------Enums-------------------------------------------------------*/
+/*
+    29-Marzo-2019
+    Definición const del Enum roleName utilizado para el rol que maneja cada objeto User
+*/
 const roleName = Enum('roleName', {
     ADMIN: "ADMINISTRATOR",           //Administrador_0
     PROGRAMMER: "PROGRAMMER",      //Programador_1
     ANALYST: "ANALYST"          //Analista_2
 });
 
+/*
+    29-Marzo-2019
+    Definición const del Enum taskType utilizado para asignar el tipo de tarea a cada objeto Task
+*/
 const taskType = Enum('taskType', {
     CONTAINER: "CONTAINER",     //Agrupador_0
     MILESTONE: "MILESTONE",     //Hito_1
@@ -51,7 +59,8 @@ const taskType = Enum('taskType', {
 /*------------------------------------------------------Objects------------------------------------------------------*/
 
 /*
-Definición de clase User para la definición de usuarios que controlan el taskManager
+27-Marzo-2019
+Definición de la clase User para la definición de usuarios que controlan el taskManager
 Atributos:
       _name = nombre de la persona a asignar como usuario
       _role = rol de la persona (Definido según el Enum roleName) [roleName.ADMIN, roleName.PROGRAMMER, roleName.ANALYST]
@@ -88,8 +97,8 @@ let User = (function(){
 
 })();
 
-
 /*
+28-Marzo-2019
 Definición de clase Task para el manejador de tareas
 Atributos:
       _parent = Referencia a la tarea padre del objeto (Si no tiene tarea padre, se asigna como NULL)
@@ -99,7 +108,6 @@ Atributos:
       _type = tipo de tarea (Definido según el Enum taskType) [taskType.CONTAINER, taskType.MILESTONE, taskType.TASK]
       _progress = Entero? Flotante? que define el progreso de la tarea. (0-100?)(0-1?) [valor de 0 al crearse la tarea]
 */
-
 let Task = (function(){
     let _parent = new WeakMap();
     let _beginDate = new WeakMap();
@@ -191,6 +199,45 @@ let Task = (function(){
     }
 
     return Task;
+})();
+
+/*
+    29-Marzo-2019
+    Definición del objeto Gant encargado de manejar la interfaz y todas las tareas del manejador
+*/
+
+let Gant = (function () {
+    let _taskList = new WeakMap();
+
+    class Gant {
+        constructor(){
+            _taskList.set(this, []);
+        }
+
+        getTaskList(){
+            return _taskList.get(this);
+        }
+
+        getTaskFromTaskList(index){
+            return _taskList.get(this)[index];
+        }
+
+        pushTaskToTaskList(newTask){
+            _taskList.get(this).push(newTask);
+        }
+
+        popTaskFromTaskList(index){
+            _taskList.get(this).splice(index, 1);
+        }
+
+        drawInterface(){
+
+        }
+
+        createForm(){
+
+        }
+    }
 })();
 
 
