@@ -151,6 +151,24 @@ let Task = (function(){
         }
 
         getRemainingTime(){
+            //Segundos dentro de un día
+            let one_day=1000*60*60*24;
+
+            //Conversión de ambas fechas a días
+            let date1 = Math.round(this.getBeginDate().getTime() / one_day);
+            let date2 = Math.round(this.getEndDate().getTime() / one_day);
+
+            //Suma los días correspondientes si la fecha ingresada es un sábado o un domingo
+            date1 = this.getBeginDate().getDay() === 6 ? date1 + 2 :
+                this.getBeginDate().getDay() === 0 ? date1 + 1 :
+                    date1;
+
+            //Resta los días correspondientes si la fecha ingresada es un sábado o un domingo
+            date2 = this.getEndDate().getDay() === 6 ? date2 - 1 :
+                this.getEndDate().getDay() === 0 ? date2 - 2 :
+                    date2;
+
+            return 1 + date2 - date1 - Math.floor((date2 - date1) / 7) * 2;
         }
 
         getName(){
