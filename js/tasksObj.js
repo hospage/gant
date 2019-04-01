@@ -377,6 +377,16 @@ let Gant = (function () {
 
 /*---------------------------------------------Code----------------------------------------------*/
 
+/*
+    31-Marzo-2019
+    Función lanzadora de la creación del objeto Gant
+    Argumentos: ninguno
+    Void
+*/
+function generateGant(launcherBtn){
+    let newGant = new Gant();
+    launcherBtn.parentNode.replaceChild(newGant.getFormReference(), launcherBtn);
+}
 
 
 /*
