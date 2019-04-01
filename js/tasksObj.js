@@ -234,10 +234,16 @@ let Task = (function(){
 
 let Gant = (function () {
     let _taskList = new WeakMap();
+    let _formReference = new WeakMap();
 
     class Gant {
         constructor(){
             _taskList.set(this, []);
+            _formReference.set(this, this.createForm());
+        }
+
+        getFormReference(){
+            return _formReference.get(this);
         }
 
         getTaskList(){
@@ -261,9 +267,111 @@ let Gant = (function () {
         }
 
         createForm(){
+            let newForm = document.createElement("form");
+            newForm.id = "taskForm";
 
+            newForm.appendChild(document.createTextNode("Nombre:"));
+            newForm.appendChild(Gant.createTextInput("taskName"));
+            newForm.appendChild(document.createElement("br"));
+
+            newForm.appendChild(document.createTextNode("Padre:"));
+            newForm.appendChild(Gant.createTextInput("parent"));
+            newForm.appendChild(document.createElement("br"));
+
+            newForm.appendChild(document.createTextNode("Fecha de inicio:"));
+            newForm.appendChild(Gant.createDatePicker("beginDate"));
+            newForm.appendChild(document.createElement("br"));
+
+            newForm.appendChild(document.createTextNode("Fecha de término:"));
+            newForm.appendChild(Gant.createDatePicker("endDate"));
+            newForm.appendChild(document.createElement("br"));
+
+            newForm.appendChild(document.createTextNode("Tipo de tarea:"));
+            newForm.appendChild(Gant.createTypeSelector("typePicker"));
+            newForm.appendChild(document.createElement("br"));
+
+            let submit = Gant.createSubmitBtn();
+            let object = this;
+            submit.onclick = function(){
+                object.addTask();
+                console.log(object.getTaskList().toString());
+            };
+
+            newForm.appendChild(submit);
+
+            return newForm;
         }
+
+        static createTextInput(name){
+            let textInput = document.createElement("input");
+            textInput.type = "text";
+            textInput.className = name;
+            return textInput;
+        }
+
+        static createDatePicker(name){
+            let dateInput = document.createElement("input");
+            dateInput.type = "text";
+            dateInput.className = name;
+            dateInput.readOnly = true;
+            dateInput.onclick = function(){
+                generateCalendar(dateInput);
+            };
+            return dateInput;
+        }
+
+        static createTypeSelector(){
+            let taskTypeSel = document.createElement("select");
+            let optionAux;
+            taskTypeSel.className = "typeSelector";
+
+            optionAux = document.createElement("option");
+            optionAux.value = "TASK";
+            optionAux.appendChild(document.createTextNode("Tarea"));
+            taskTypeSel.appendChild(optionAux);
+
+            optionAux = document.createElement("option");
+            optionAux.value = "CONTAINER";
+            optionAux.appendChild(document.createTextNode("Contenedor"));
+            taskTypeSel.appendChild(optionAux);
+
+            optionAux = document.createElement("option");
+            optionAux.value = "MILESTONE";
+            optionAux.appendChild(document.createTextNode("Hito"));
+            taskTypeSel.appendChild(optionAux);
+
+            return taskTypeSel;
+        }
+
+        static createSubmitBtn(){
+            let newSubmit = document.createElement("input");
+            newSubmit.type = "button";
+            newSubmit.value = "Crear tarea";
+            return newSubmit;
+        }
+
+        addTask(){
+            let formData = this.getFormReference();
+
+            let taskName = formData.getElementsByClassName("taskName")[0];
+            let parent = formData.getElementsByClassName("parent")[0];
+            let type = formData.getElementsByClassName("typeSelector")[0];
+            let beginDate = formData.getElementsByClassName("beginDate")[0];
+            let endDate = formData.getElementsByClassName("endDate")[0];
+
+            this.pushTaskToTaskList(new Task(
+                taskName.value,
+                parent.value,
+                DateUtilities.parseDate(beginDate.value),
+                DateUtilities.parseDate(endDate.value),
+                taskType.nameOf(type.options[type.selectedIndex].value)
+                )
+            );
+        }
+
     }
+    return Gant;
+
 })();
 
 
