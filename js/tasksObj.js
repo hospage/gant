@@ -262,7 +262,8 @@ let Gant = (function () {
 /*---------------------------------------------Code----------------------------------------------*/
 
 
-let a = new User("Juan", roleName.ADMIN);
-
-console.log(a.getName());
-console.log(a.getRole());
+let userTest = new User("Juan", roleName.ADMIN);
+let taskTest = new Task(null, new Date(2019, 2, 1), new Date(2019, 2, 8), "tarea1", taskType.TASK);
+console.log(userTest.getName());
+console.log(userTest.getRole());
+console.log(taskTest.getRemainingTime());
