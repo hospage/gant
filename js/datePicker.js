@@ -789,11 +789,9 @@ let Calendar = (function(){
             element.addEventListener("mousedown", function(){
                 let year = object.getSelectedYear();
                 let month = DateUtilities.getMonthNumber(object.getMonthTh().innerHTML);
-                month--;
-                if(month === 0){
+                if(month === 0)
                     year--;
-                    month = 12;
-                }
+                month = --month % 12;
                 object.setSelectedYear(year);
                 object.updateCalendar(year, month);
                 this.style.backgroundColor = color;
@@ -813,11 +811,9 @@ let Calendar = (function(){
             element.addEventListener("mousedown", function(){
                 let year = object.getSelectedYear();
                 let month = DateUtilities.getMonthNumber(object.getMonthTh().innerHTML);
-                month++;
-                if(month === 13){
+                if (month === 11)
                     year++;
-                    month = 1;
-                }
+                month = ++month % 12;
                 object.setSelectedYear(year);
                 object.updateCalendar(year, month);
                 this.style.backgroundColor = color;
@@ -1175,14 +1171,14 @@ class DateUtilities {
 
     */
    static getDaysOfMonth(year, month) {
-        if (month < 8){
-            if (month % 2 === 1){
+        if (month < 7){
+            if (month % 2 === 0){
                 return 31;
             }
-            else if (month === 2 && DateUtilities.isLeap(year)){
+            else if (month === 1 && DateUtilities.isLeap(year)){
                 return 29;
             }
-            else if (month === 2){
+            else if (month === 1){
                 return 28;
             }
             else{
@@ -1190,7 +1186,7 @@ class DateUtilities {
             }
         }
         else{
-            if (month % 2 === 0){
+            if (month % 2 === 1){
                 return 31;
             }
             else{
