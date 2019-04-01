@@ -1264,7 +1264,7 @@ class DateUtilities {
         Retorna entero con el número del mes actual
      */
     static getCurrentMonth(){
-        return DateUtilities.dateElem.getMonth() + 1;
+        return DateUtilities.dateElem.getMonth();
     }
 
 
