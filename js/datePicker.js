@@ -1283,4 +1283,19 @@ class DateUtilities {
         return DateUtilities.dateElem.getDate();
     }
 
+    /*
+        31-Marzo-2019
+        Convierte cadena de entrada en objeto Date
+        Argumentos:
+            dateString = fecha en formato DD/Month/YYYY
+        Retorna elemento Date
+    */
+    static parseDate(dateString){
+        return new Date(
+            parseInt(dateString.split("/")[2]),
+            DateUtilities.getMonthNumber(dateString.split("/")[1]),
+            parseInt(dateString.split("/")[0])
+        )
+    }
+
 }
