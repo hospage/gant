@@ -220,6 +220,13 @@ let Task = (function(){
         addUser(newUser){
 
         }
+
+        toString(){
+            return "Name: " + this.getName() + "\nParent: " + this.getParent() + "\nBegin Date: " + this.getBeginDate()
+                + "\nEnd Date: " + this.getEndDate() + "\nTask type: " + this.getType() + "\nProgress: " +
+                this.getProgress().toString() + "%\n\n";
+        }
+
     }
 
     return Task;
