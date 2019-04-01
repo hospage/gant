@@ -60,7 +60,7 @@ const taskType = Enum('taskType', {
 
 /*
 27-Marzo-2019
-Definición de la clase User para la definición de usuarios que controlan el taskManager
+Definición de la clase User para la definición de usuarios que controlan el Gant
 Atributos:
       _name = nombre de la persona a asignar como usuario
       _role = rol de la persona (Definido según el Enum roleName) [roleName.ADMIN, roleName.PROGRAMMER, roleName.ANALYST]
@@ -102,9 +102,9 @@ let User = (function(){
 Definición de clase Task para el manejador de tareas
 Atributos:
       _parent = Referencia a la tarea padre del objeto (Si no tiene tarea padre, se asigna como NULL)
-      _beginDate = Fecha de inicio de la tarea
-      _endDate = Fecha de finalización (tentativa) de la tarea
-      _name = nombre de la tarea
+      _beginDate = Fecha de inicio de la tarea (Date)
+      _endDate = Fecha de finalización de la tarea (Date)
+      _name = nombre de la tarea (String)
       _type = tipo de tarea (Definido según el Enum taskType) [taskType.CONTAINER, taskType.MILESTONE, taskType.TASK]
       _progress = Entero? Flotante? que define el progreso de la tarea. (0-100?)(0-1?) [valor de 0 al crearse la tarea]
 */
@@ -150,6 +150,12 @@ let Task = (function(){
             _endDate.set(this, newDate);
         }
 
+        /*
+            31-Marzo-2019
+            Obtiene el número de dias entre _beginDate y _endDate
+            Argumentos: ninguno
+            Retorna entero
+        */
         getRemainingTime(){
             //Segundos dentro de un día
             let one_day=1000*60*60*24;
@@ -158,12 +164,12 @@ let Task = (function(){
             let date1 = Math.round(this.getBeginDate().getTime() / one_day);
             let date2 = Math.round(this.getEndDate().getTime() / one_day);
 
-            //Suma los días correspondientes si la fecha ingresada es un sábado o un domingo
+            //Suma los días correspondientes si la fecha de inicio ingresada es un sábado o un domingo
             date1 = this.getBeginDate().getDay() === 6 ? date1 + 2 :
                 this.getBeginDate().getDay() === 0 ? date1 + 1 :
                     date1;
 
-            //Resta los días correspondientes si la fecha ingresada es un sábado o un domingo
+            //Resta los días correspondientes si la fecha de finalización ingresada es un sábado o un domingo
             date2 = this.getEndDate().getDay() === 6 ? date2 - 1 :
                 this.getEndDate().getDay() === 0 ? date2 - 2 :
                     date2;
@@ -222,6 +228,8 @@ let Task = (function(){
 /*
     29-Marzo-2019
     Definición del objeto Gant encargado de manejar la interfaz y todas las tareas del manejador
+    Atributos:
+        _taskList = arreglo de todos los objetos Task que maneja Gant
 */
 
 let Gant = (function () {
@@ -262,6 +270,11 @@ let Gant = (function () {
 /*---------------------------------------------Code----------------------------------------------*/
 
 
+
+/*
+    31-Marzo-2019
+    Pruebas pertinentes de creación de un objeto User y un objeto Task
+*/
 let userTest = new User("Juan", roleName.ADMIN);
 let taskTest = new Task(null, new Date(2019, 2, 1), new Date(2019, 2, 8), "tarea1", taskType.TASK);
 console.log(userTest.getName());
