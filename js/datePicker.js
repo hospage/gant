@@ -52,7 +52,6 @@ let Calendar = (function(){
 
     class Calendar {
         constructor(inputString) {
-            console.log(inputString);
             _reminderArray.set(this, []);
 
             let calendar = Calendar.createTable();
@@ -62,9 +61,6 @@ let Calendar = (function(){
             _calendarReference.set(this, calendar);
             this.setClickOutsideCalendar();
             if(inputString !== ""){
-                console.log(Number.parseInt(inputString.split("/")[2]));
-                console.log(DateUtilities.getMonthNumber(inputString.split("/")[1]));
-
                 this.updateCalendar(
                     Number.parseInt(inputString.split("/")[2]),
                     DateUtilities.getMonthNumber(inputString.split("/")[1])
