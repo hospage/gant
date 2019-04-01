@@ -108,13 +108,13 @@ Atributos:
       _type = tipo de tarea (Definido según el Enum taskType) [taskType.CONTAINER, taskType.MILESTONE, taskType.TASK]
       _progress = Entero? Flotante? que define el progreso de la tarea. (0-100?)(0-1?) [valor de 0 al crearse la tarea]
 */
-let Task = (function(){
-    let _parent = new WeakMap();
-    let _beginDate = new WeakMap();
-    let _endDate = new WeakMap();
-    let _name = new WeakMap();
-    let _type = new WeakMap();
-    let _progress = new WeakMap();
+const Task = (function(){
+    const _parent = new WeakMap();
+    const _beginDate = new WeakMap();
+    const _endDate = new WeakMap();
+    const _name = new WeakMap();
+    const _type = new WeakMap();
+    const _progress = new WeakMap();
 
     class Task {
         constructor(name, parent, beginDate, endDate,  type){
