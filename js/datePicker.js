@@ -1114,29 +1114,29 @@ class DateUtilities {
     static getMonthNumber(month) {
         switch (month) {
             case "Enero":
-                return 1;
+                return 0;
             case "Febrero":
-                return 2;
+                return 1;
             case "Marzo":
-                return 3;
+                return 2;
             case "Abril":
-                return 4;
+                return 3;
             case "Mayo":
-                return 5;
+                return 4;
             case "Junio":
-                return 6;
+                return 5;
             case "Julio":
-                return 7;
+                return 6;
             case "Agosto":
-                return 8;
+                return 7;
             case "Septiembre":
-                return 9;
+                return 8;
             case "Octubre":
-                return 10;
+                return 9;
             case "Noviembre":
-                return 11;
+                return 10;
             default:
-                return 12;
+                return 11;
         }
     }
 
