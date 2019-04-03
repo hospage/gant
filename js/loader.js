@@ -22,7 +22,7 @@ Loader.prototype = {
 
         for (let i = 0; i < scripts.length-1; i++) {
             this.writeScript(scripts[i]);
-            alert('-->'+scripts[i]);
+            console.log('-->'+scripts[i]);
         }
 
         this.writeScript(scripts[scripts.length - 1]);
@@ -36,7 +36,7 @@ Loader.prototype = {
         let self = this;
         let s = document.createElement('script');
         s.type = "text/javascript";
-        s.async = true;
+        s.async = false;
         s.src = src;
         s.addEventListener('load', function (e) { self.loaded(e); }, false);
         let head = document.getElementsByTagName('head')[0];
