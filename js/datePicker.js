@@ -1,11 +1,5 @@
 
 
-window.onload = function(){
-    let a = document.getElementsByTagName("input");
-    for (let i = 0; i < a.length; i++) {
-        a[i].value = "";
-    }
-};
 
 /*
     29-Marzo-2019
@@ -17,7 +11,6 @@ window.onload = function(){
 */
 function generateCalendar(inputElem){
     let divVar = document.createElement("div");
-    divVar.style.display = "inline-block";
     inputElem.parentNode.replaceChild(divVar, inputElem);
     divVar.appendChild(inputElem);
 

@@ -318,7 +318,6 @@ let Gant = (function () {
             };
 
             newForm.appendChild(submit);
-
             return newForm;
         }
 
