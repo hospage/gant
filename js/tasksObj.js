@@ -276,29 +276,34 @@ let Gant = (function () {
         createForm(){
             let newForm = createElementComplete('form', 'taskForm', '', '');
             let grid = createElementComplete('table', '', 'inputDialog', '');
-            let renglon = document.createElement('tr');
-            let entrada = document.createElement('td');
-            let izquierdas = [document.createTextNode("Nombre: "),
-            document.createTextNode("Padre: "),
-            document.createTextNode("Fecha de Inicio: "),
-            document.createTextNode("Fecha de término: "),
-            document.createTextNode("Tipo de tarea: ")];
+            let izquierdas = [
+                document.createTextNode("Nombre: "),
+                document.createTextNode("Padre: "),
+                document.createTextNode("Fecha de Inicio: "),
+                document.createTextNode("Fecha de término: "),
+                document.createTextNode("Tipo de tarea: ")
+            ];
 
-            let derechas = [Gant.createTextInput("taskName"),Gant.createTextInput("parent"),Gant.createDatePicker("beginDate"),Gant.createDatePicker("endDate"),Gant.createTypeSelector("typePicker")];
-
+            let derechas = [
+                Gant.createTextInput("taskName"),
+                Gant.createTextInput("parent"),
+                Gant.createDatePicker("beginDate"),
+                Gant.createDatePicker("endDate"),
+                Gant.createTypeSelector("typePicker")
+            ];
 
             izquierdas.forEach(function(item, index){
-                let renglon = document.createElement("TR");
-                let entrada1 = document.createElement("td");
-                let entrada2 = document.createElement("td");
+                let row = document.createElement("TR");
+                let in1 = document.createElement("td");
+                let in2 = document.createElement("td");
 
-                entrada1.appendChild(item);
-                entrada2.appendChild(derechas[index]);
+                in1.appendChild(item);
+                in2.appendChild(derechas[index]);
 
-                renglon.appendChild(entrada1);
-                renglon.appendChild(entrada2);
+                row.appendChild(in1);
+                row.appendChild(in2);
 
-                grid.appendChild(renglon);
+                grid.appendChild(row);
             });
 
 
