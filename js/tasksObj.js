@@ -1,8 +1,5 @@
 /*-------------------------------------------------------Tools-------------------------------------------------------*/
 
-
-
-
 /*
 Implementación de la estructura Enum según la especificación ECMA ES6
 La estructura define un intermediario llamado Proxy que verifica los cambios hechos fuera de la definición
