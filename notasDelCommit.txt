@@ -1,0 +1,6 @@
+Note algunas funciones redundantes dentro de
+la clase gant.
+
+
+Perdon por no poner acentos, esta vaina no tiene
+acentos.
