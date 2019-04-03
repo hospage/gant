@@ -1,7 +1,28 @@
 * {
-    font-family: 'Amiko', sans-serif;
+    font-family: 'Raleway', serif;
 }
 
-h1 {
-    font-family: 'Arima Madurai', cursive;
+
+
+.inputDialog{
+  padding: 15px 20px 15px 20px;
+  border: none;
+  background-color: #dd4949;
+  width: 700px;
+  font-weight: lighter;
+  color: #e3e1ef;
+}
+
+.inputDialog td{
+  margin: 100px;
+}
+
+
+input[type=text] {
+  padding:5px 20px;
+  margin: 8px;
+  border: none;
+  margin: 3px 10px 3px 10px;
+  width: 85%;
+  height: 30px;
 }

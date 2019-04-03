@@ -1,5 +1,7 @@
 //crea un elemento html con su id, clase y texto interior
 
+
+
 function createElementComplete(element, identifier, className, innerText){
   var t = document.createElement(element);
 
@@ -8,11 +10,11 @@ function createElementComplete(element, identifier, className, innerText){
     t.id = identifier;
   }
   else{
-    if(identifier == ''){
-      t.className = String(className);
+    if(identifier != ''){
+      t.identifier = String(className);
     }
-    else {
-      t.id = String(identifier);
+    else if(className != '') {
+      t.className = String(className);
     }
   }
 

@@ -1,5 +1,11 @@
 /*-------------------------------------------------------Tools-------------------------------------------------------*/
 
+
+  var importar = document.createElement('script');
+  importar.src = 'js/utils.js';
+  document.head.appendChild(importar);
+
+
 /*
 Implementación de la estructura Enum según la especificación ECMA ES6
 La estructura define un intermediario llamado Proxy que verifica los cambios hechos fuera de la definición
@@ -274,28 +280,35 @@ let Gant = (function () {
         }
 
         createForm(){
-            let newForm = document.createElement("form");
-            newForm.id = "taskForm";
+            let newForm = createElementComplete('form', 'taskForm', '', '');
+            let grid = createElementComplete('table', '', 'inputDialog', '');
+            let renglon = document.createElement('tr');
+            let entrada = document.createElement('td');
+            let izquierdas = [document.createTextNode("Nombre: "),
+            document.createTextNode("Padre: "),
+            document.createTextNode("Fecha de Inicio: "),
+            document.createTextNode("Fecha de término: "),
+            document.createTextNode("Tipo de tarea: ")];
 
-            newForm.appendChild(document.createTextNode("Nombre:"));
-            newForm.appendChild(Gant.createTextInput("taskName"));
-            newForm.appendChild(document.createElement("br"));
+            let derechas = [Gant.createTextInput("taskName"),Gant.createTextInput("parent"),Gant.createDatePicker("beginDate"),Gant.createDatePicker("endDate"),Gant.createTypeSelector("typePicker")];
 
-            newForm.appendChild(document.createTextNode("Padre:"));
-            newForm.appendChild(Gant.createTextInput("parent"));
-            newForm.appendChild(document.createElement("br"));
 
-            newForm.appendChild(document.createTextNode("Fecha de inicio:"));
-            newForm.appendChild(Gant.createDatePicker("beginDate"));
-            newForm.appendChild(document.createElement("br"));
+            izquierdas.forEach(function(item, index){
+                let renglon = document.createElement("TR");
+                let entrada1 = document.createElement("td");
+                let entrada2 = document.createElement("td");
 
-            newForm.appendChild(document.createTextNode("Fecha de término:"));
-            newForm.appendChild(Gant.createDatePicker("endDate"));
-            newForm.appendChild(document.createElement("br"));
+                entrada1.appendChild(item);
+                entrada2.appendChild(derechas[index]);
 
-            newForm.appendChild(document.createTextNode("Tipo de tarea:"));
-            newForm.appendChild(Gant.createTypeSelector("typePicker"));
-            newForm.appendChild(document.createElement("br"));
+                renglon.appendChild(entrada1);
+                renglon.appendChild(entrada2);
+
+                grid.appendChild(renglon);
+            });
+
+
+            newForm.appendChild(grid);
 
             let submit = Gant.createSubmitBtn();
             let object = this;
@@ -309,10 +322,9 @@ let Gant = (function () {
             return newForm;
         }
 
-        static createTextInput(name){
-            let textInput = document.createElement("input");
+        static createTextInput(className){
+            let textInput = createElementComplete('input', '', className, '');
             textInput.type = "text";
-            textInput.className = name;
             return textInput;
         }
 
@@ -328,24 +340,14 @@ let Gant = (function () {
         }
 
         static createTypeSelector(){
-            let taskTypeSel = document.createElement("select");
-            let optionAux;
-            taskTypeSel.className = "typeSelector";
+            let taskTypeSel = createElementComplete('select', '', 'typeSelector', '');
+            let optionAux = [createElementComplete('option', '', '', 'Tarea'), createElementComplete('option', '', '', 'Contenedor'), createElementComplete('option', '', '', 'Hito')];
+            let values = [taskType.TASK, taskType.CONTAINER, taskType.MILESTONE];
 
-            optionAux = document.createElement("option");
-            optionAux.value = "TASK";
-            optionAux.appendChild(document.createTextNode("Tarea"));
-            taskTypeSel.appendChild(optionAux);
-
-            optionAux = document.createElement("option");
-            optionAux.value = "CONTAINER";
-            optionAux.appendChild(document.createTextNode("Contenedor"));
-            taskTypeSel.appendChild(optionAux);
-
-            optionAux = document.createElement("option");
-            optionAux.value = "MILESTONE";
-            optionAux.appendChild(document.createTextNode("Hito"));
-            taskTypeSel.appendChild(optionAux);
+            optionAux.forEach(function(item, index){
+                item.value = values[index];
+                taskTypeSel.appendChild(item);
+            });
 
             return taskTypeSel;
         }
