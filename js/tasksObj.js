@@ -1,9 +1,6 @@
 /*-------------------------------------------------------Tools-------------------------------------------------------*/
 
 
-  var importar = document.createElement('script');
-  importar.src = 'js/utils.js';
-  document.head.appendChild(importar);
 
 
 /*
