@@ -3,6 +3,7 @@ function load(){
     l.require(
         [
             "js/datePicker.js",
+            "js/utils.js",
             "js/tasksObj.js",
             "js/tests.js"
         ],
