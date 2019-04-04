@@ -273,8 +273,33 @@ let Gant = (function () {
 
         }
 
+        static stylizeForm(newForm){
+            newForm.style.position = "fixed";
+            newForm.style.opacity = "1";
+            newForm.style.zIndex = "100";
+            newForm.style.left = "50%";
+            newForm.style.top = "50%";
+            newForm.style.transform = "translate(-50%, -50%)";
+        }
+
+        static darkenPage(){
+            let divVar = createElementComplete("div", "", "", "");
+            divVar.style.background = "#000";
+            divVar.style.opacity = "0.5";
+            divVar.style.position = "fixed";
+            divVar.style.left = divVar.style.top = "0";
+            divVar.style.width = "100%";
+            divVar.style.height = "100%";
+            divVar.style.zIndex = "100";
+            document.body.insertBefore(divVar, document.body.firstChild);
+        }
+
         createForm(){
             let newForm = createElementComplete('form', 'taskForm', '', '');
+
+            newForm.appendChild(Gant.createCloseX());
+
+
             let grid = createElementComplete('table', '', 'inputDialog', '');
             let izquierdas = [
                 document.createTextNode("Nombre: "),
@@ -304,8 +329,8 @@ let Gant = (function () {
                 row.appendChild(in2);
 
                 grid.appendChild(row);
-            });
 
+            });
 
             newForm.appendChild(grid);
 
@@ -315,8 +340,9 @@ let Gant = (function () {
                 object.addTask();
                 console.log(object.getTaskList().toString());
             };
-
             newForm.appendChild(submit);
+            Gant.stylizeForm(newForm);
+            Gant.darkenPage();
             return newForm;
         }
 
@@ -339,7 +365,11 @@ let Gant = (function () {
 
         static createTypeSelector(){
             let taskTypeSel = createElementComplete('select', '', 'typeSelector', '');
-            let optionAux = [createElementComplete('option', '', '', 'Tarea'), createElementComplete('option', '', '', 'Contenedor'), createElementComplete('option', '', '', 'Hito')];
+            let optionAux = [
+                createElementComplete('option', '', '', 'Tarea'),
+                createElementComplete('option', '', '', 'Contenedor'),
+                createElementComplete('option', '', '', 'Hito')
+            ];
             let values = [taskType.TASK, taskType.CONTAINER, taskType.MILESTONE];
 
             optionAux.forEach(function(item, index){
@@ -355,6 +385,22 @@ let Gant = (function () {
             newSubmit.type = "button";
             newSubmit.value = "Crear tarea";
             return newSubmit;
+        }
+
+        static createCloseX(){
+            let newX = createElementComplete("div", "", "", '×');
+            newX.style.fontSize = "50px";
+            newX.style.color = "black";
+            newX.style.display = "inline-block";
+            newX.style.cssFloat = "left";
+            newX.style.cursor = "pointer";
+            newX.style.position = "fixed";
+            newX.style.top = "-20px";
+            newX.addEventListener("click", function(){
+                this.parentNode.parentNode.removeChild(this.parentNode);
+                document.body.firstChild.style.display = "none";
+            });
+            return newX;
         }
 
         addTask(){
@@ -392,5 +438,5 @@ let Gant = (function () {
 */
 function generateGant(launcherBtn){
     let newGant = new Gant();
-    launcherBtn.parentNode.replaceChild(newGant.getFormReference(), launcherBtn);
+    launcherBtn.parentNode.appendChild(newGant.getFormReference());
 }
