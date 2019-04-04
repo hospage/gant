@@ -55,3 +55,9 @@ function appendElement(identifier, child){
 
   t1.appendChild(child);
 }
+
+
+function removeElement(id) {
+    let elem = document.getElementById(id);
+    return elem.parentNode.removeChild(elem);
+}
