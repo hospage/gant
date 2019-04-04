@@ -291,32 +291,26 @@ let Gant = (function () {
             return newInterface;
         }
 
-        static stylizeForm(newForm){
-            newForm.style.position = "fixed";
-            newForm.style.opacity = "1";
-            newForm.style.zIndex = "100";
-            newForm.style.left = "50%";
-            newForm.style.top = "50%";
-            newForm.style.transform = "translate(-50%, -50%)";
-        }
-
-        static addDarkenerDiv(){
-            let divVar = createElementComplete("div", "", "", "");
-            divVar.style.background = "#000";
-            divVar.style.display = "none";
-            divVar.style.opacity = "0.5";
-            divVar.style.position = "fixed";
-            divVar.style.left = divVar.style.top = "0";
-            divVar.style.width = "100%";
-            divVar.style.height = "100%";
-            divVar.style.zIndex = "100";
-            document.body.insertBefore(divVar, document.body.firstChild);
-        }
-
         createForm(){
             let newForm = createElementComplete('form', 'taskForm', '', '');
-            newForm.appendChild(Gant.createCloseX());
+            let submit = Gant.createBtn("Agregar Tarea");
+            let object = this;
 
+            submit.onclick = function(){
+                object.addTask();
+                console.log(object.getTaskList().toString());
+            };
+
+            newForm.appendChild(Gant.createCloseX());
+            newForm.appendChild(Gant.createGrid());
+            newForm.appendChild(submit);
+
+            Gant.stylizeForm(newForm);
+            Gant.addDarkenerDiv();
+            return newForm;
+        }
+
+        static createGrid(){
             let grid = createElementComplete('table', '', 'inputDialog', '');
             let izquierdas = [
                 document.createTextNode("Nombre: "),
@@ -346,20 +340,6 @@ let Gant = (function () {
                 grid.appendChild(row);
 
             });
-
-            newForm.appendChild(grid);
-
-            let submit = Gant.createBtn("Agregar Tarea");
-            let object = this;
-            submit.onclick = function(){
-                object.addTask();
-                console.log(object.getTaskList().toString());
-            };
-            newForm.appendChild(submit);
-
-            Gant.stylizeForm(newForm);
-            Gant.addDarkenerDiv();
-            return newForm;
         }
 
         static createTextInput(className){
@@ -436,6 +416,29 @@ let Gant = (function () {
                 taskType.nameOf(type.options[type.selectedIndex].value)
                 )
             );
+        }
+
+        /***************************************Estilos***************************************/
+        static stylizeForm(newForm){
+            newForm.style.position = "fixed";
+            newForm.style.opacity = "1";
+            newForm.style.zIndex = "100";
+            newForm.style.left = "50%";
+            newForm.style.top = "50%";
+            newForm.style.transform = "translate(-50%, -50%)";
+        }
+
+        static addDarkenerDiv(){
+            let divVar = createElementComplete("div", "", "", "");
+            divVar.style.background = "#000";
+            divVar.style.display = "none";
+            divVar.style.opacity = "0.5";
+            divVar.style.position = "fixed";
+            divVar.style.left = divVar.style.top = "0";
+            divVar.style.width = "100%";
+            divVar.style.height = "100%";
+            divVar.style.zIndex = "100";
+            document.body.insertBefore(divVar, document.body.firstChild);
         }
 
     }
