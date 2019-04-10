@@ -33,6 +33,11 @@ div.tagIdentifier{
   width: 150px;
 }
 
+div.tagName{
+  display: inline-grid;
+  width: 100px;
+}
+
 div.tagValue{
   display: inline-grid;
 }
@@ -46,6 +51,5 @@ div.contenedorMaestro{
 }
 
 div.grouper{
-  width: 40%;
-  display: inline-grid;
+  display: inline-block;
 }

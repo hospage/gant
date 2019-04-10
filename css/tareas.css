@@ -1,5 +1,5 @@
 div.contenedor{
-  width:40%;
+  width:70%;
   font-family: 'Poppins', sans-serif;
   color: #333333;
   border-style: solid;
@@ -16,7 +16,7 @@ div.nombre {
 }
 
 div.loadBar {
-  width: 70%;
+  width: 100%;
   border-style: solid;
   border-color: #c94c4c;
   border-radius: 30px;

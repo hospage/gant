@@ -221,6 +221,89 @@ const Task = (function(){
 
         }
 
+        createDisplay(){
+          let task = this;
+
+          let contenedor = createElementComplete('div', '', 'contenedor', '');
+
+          let box = document.createElement('div');
+
+          let clase = 'tagName';
+
+          let tags = [createElementComplete('div', '', clase, 'Nombre: '),
+          createElementComplete('div', '', clase, 'Fecha Inicial: '),
+          createElementComplete('div', '', clase, 'Fecha Final: '),
+          createElementComplete('div', '', clase, 'Progreso: '),
+          createElementComplete('div', '', clase, 'Tiempo Restante: '),
+          createElementComplete('div', '', clase, 'Agregar Avance: ')];
+
+          let loadBar = createElementComplete('div', '', 'loadBar', ' ');
+          let loaded = createElementComplete('div', '', 'loaded', ' ');
+
+
+          loaded.style.width = "1%";
+
+          loadBar.appendChild(loaded);
+
+          let fechaInicio = task.getBeginDate();
+          fechaInicio = String(fechaInicio.getDay()) + "/" + String(fechaInicio.getMonth()) + "/" + String(fechaInicio.getFullYear());
+          fechaInicio = String(fechaInicio);
+
+          let fechaFin = task.getEndDate();
+          let fechaFinStr = fechaFin.getDay() + "/" + fechaFin.getMonth() + "/" + fechaFin.getFullYear();
+
+          let values = [createElementComplete('div', '', 'tagValue', String(task.getName())),
+            createElementComplete('div', '', 'tagValue', fechaInicio),
+            createElementComplete('div', '', 'tagValue', fechaFinStr),
+            createElementComplete('div', '', 'tagValue', ''),
+            createElementComplete('div', '', 'tagValue', task.getRemainingTime()),
+              createElementComplete('div', '', 'tagValue', '')];
+
+
+          let lengths = ["150px","150px","150px", "400px","150px","150px"];
+
+
+          values.forEach(function(item, index){
+            item.style.width = lengths[index];
+          });
+
+
+          values[3].appendChild(loadBar);
+
+          let top1 = tags.length/2;
+          let top2 = 2;
+          let i = 0;
+          let j = 0;
+
+          for(i = 0; i < top1; i++){
+            let m = document.createElement('div');
+            let kl = createElementComplete('div', '', 'grouper', '');
+            let kr = createElementComplete('div', '', 'grouper', '');
+            kl.style.width = "250px";
+            kr.style.width = "600px";
+
+
+            let k1 = tags[i];
+            let k2 = values[i];
+            let k3 = tags[i + top1];
+            let k4 = values[i + top1];
+            kl.appendChild(k1);
+            kl.appendChild(k2);
+            kr.appendChild(k3);
+            kr.appendChild(k4);
+
+            m.appendChild(kl);
+            m.appendChild(kr);
+
+            box.appendChild(m);
+          }
+
+          contenedor.appendChild(box);
+
+
+          return contenedor;
+        }
+
         toString(){
             return "Name: " + this.getName() + "\nParent: " + this.getParent() + "\nBegin Date: " + this.getBeginDate()
                 + "\nEnd Date: " + this.getEndDate() + "\nTask type: " + this.getType() + "\nProgress: " +
@@ -297,13 +380,13 @@ let Gant = (function () {
             let object = this;
 
             submit.onclick = function(){
-                object.addTask();
+                let task = object.addTask();
                 console.log(object.getTaskList().toString());
                 console.log(object);
                 this.parentNode.parentNode.removeChild(this.parentNode);
                 document.body.firstChild.style.display = "none";
-                let graph = object.createTaskDisplay();
-                console.log(graph);
+                object.getInterfaceReference().appendChild(task.createDisplay());
+
             };
 
             newForm.appendChild(Gant.createCloseX());
@@ -313,90 +396,6 @@ let Gant = (function () {
             Gant.stylizeForm(newForm);
             Gant.addDarkenerDiv();
             return newForm;
-        }
-
-        createTaskDisplay(){
-          let object = this;
-          let lista = object.getTaskList();
-          let t = lista.length;
-          let task = object.getTaskFromTaskList(t -1);
-
-
-          let contenedor = createElementComplete('div', '', 'contenedor');
-
-          let box = document.createElement('div');
-
-          let clase = 'tagIdentifier';
-
-          let tags = [createElementComplete('div', '', clase, 'Nombre: '),
-          createElementComplete('div', '', clase, 'Fecha Inicial: '),
-          createElementComplete('div', '', clase, 'Fecha Final: '),
-          createElementComplete('div', '', clase, 'Progreso: '),
-          createElementComplete('div', '', clase, 'Tiempo Restante: '),
-          createElementComplete('div', '', clase, 'Agregar Avance: ')];
-
-          let loadBar = document.createElement('div', '', 'loadBar', ' ');
-          let loaded = document.createElement('div', 'load' + String(t-1), 'loaded', ' ');
-
-          loaded.style.width = "1%";
-
-          loadBar.appendChild(loaded);
-
-          let fechaInicio = task.getBeginDate();
-          fechaInicio = String(fechaInicio.getDay()) + "/" + String(fechaInicio.getMonth()) + "/" + String(fechaInicio.getFullYear());
-          fechaInicio = String(fechaInicio);
-
-          let fechaFin = task.getEndDate();
-          fechaFin = String(fechaFin.getDay()) + "/" + String(fechaFin.getMonth()) + "/" + String(fechaFin.getFullYear());
-          fechaFin = String(fechaFin);
-
-          let values = [createElementComplete('div', '', 'tagValue', String(task.getName())),
-            createElementComplete('div', '', 'tagValue', fechaInicio),
-            createElementComplete('div', '', 'tagValue', fechaFin),
-            createElementComplete('div', '', 'tagValue', ''),
-            createElementComplete('div', '', 'tagValue', task.getRemainingTime()),
-              createElementComplete('div', '', 'tagValue', '')];
-
-
-          let lengths = ["250px","250px","250px", "700px","250px","250px"];
-
-
-          values.forEach(function(item, index){
-            item.style.width = lengths[index];
-          });
-
-
-          values[3].appendChild(loadBar);
-
-          let top1 = tags.length/2;
-          let top2 = 2;
-          let i = 0;
-          let j = 0;
-
-          for(i = 0; i < top1; i++){
-            let m = document.createElement('div');
-            let kl = createElementComplete('div', '', 'grouper', '');
-            let kr = createElementComplete('div', '', 'grouper', '');
-
-            let k1 = tags[i];
-            let k2 = values[i];
-            let k3 = tags[i + top1];
-            let k4 = values[i + top1];
-            kl.appendChild(k1);
-            kl.appendChild(k2);
-            kr.appendChild(k3);
-            kr.appendChild(k4);
-
-            m.appendChild(kl);
-            m.appendChild(kr);
-
-            box.appendChild(m);
-          }
-
-          contenedor.appendChild(box);
-
-
-          return contenedor;
         }
 
 
@@ -502,14 +501,15 @@ let Gant = (function () {
             let beginDate = formData.getElementsByClassName("beginDate")[0];
             let endDate = formData.getElementsByClassName("endDate")[0];
 
-            this.pushTaskToTaskList(new Task(
-                taskName.value,
+            let task = new Task(taskName.value,
                 null,
                 DateUtilities.parseDate(beginDate.value),
                 DateUtilities.parseDate(endDate.value),
-                taskType.nameOf(type.options[type.selectedIndex].value)
-                )
-            );
+                taskType.nameOf(type.options[type.selectedIndex].value));
+
+            this.pushTaskToTaskList(task);
+
+            return task;
         }
 
         /***************************************Estilos***************************************/
