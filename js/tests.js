@@ -6,4 +6,4 @@ let userTest = new User("Juan", roleName.ADMIN);
 let taskTest = new Task("tarea1", null, new Date(2019, 2, 1), new Date(2019, 2, 8), taskType.TASK);
 console.log(userTest.getName());
 console.log(userTest.getRole());
-console.log(taskTest.getRemainingTime());
+console.log(taskTest.getBeginDate().getMonth());

@@ -1,34 +1,12 @@
 div.contenedor{
-  width:auto;
+  width:40%;
   font-family: 'Poppins', sans-serif;
-  font-size: 30px;
   color: #333333;
   border-style: solid;
   border-color: #333333;
   border-radius: 30px;
   padding: 10px 30px 10px 30px;
   margin: 30px;
-  width: 60%;
-
-}
-
-div.contenedor#u1{
-  float: right;
-}
-
-div.contenedor#u2{
-  float:left;
-}
-
-div.contenedor#u3{
-  float: left;
-  position: relative;
-  left:17%;
-
-}
-
-div.contenedor#u4{
-  float: left;
 }
 
 
@@ -37,7 +15,7 @@ div.nombre {
   width: 15%;
 }
 
-div.loadbar {
+div.loadBar {
   width: 70%;
   border-style: solid;
   border-color: #c94c4c;
@@ -67,8 +45,4 @@ div#tres.loaded{
 
 div#cuatro.loaded{
   width: 90%;
-}
-
-h2 {
-  font-family: 'Poppins', sans-serif;
 }

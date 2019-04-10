@@ -2,8 +2,6 @@
     font-family: 'Raleway', serif;
 }
 
-
-
 .inputDialog{
   padding: 15px 20px 15px 20px;
   border: none;
@@ -17,11 +15,37 @@
   margin: 100px;
 }
 
-
 input[type=text] {
   padding:5px 20px;
   border: none;
   margin: 3px 10px 3px 10px;
-  width: 85%;
+  width: 100%;
   height: 30px;
+}
+
+div.tagHolder{
+  width: 600px;
+  margin: 10px 20px 10px 20px;
+}
+
+div.tagIdentifier{
+  display: inline-grid;
+  width: 150px;
+}
+
+div.tagValue{
+  display: inline-grid;
+}
+
+div.contenedorMaestro{
+  width:90%;
+  color: #333333;
+  border: 1px solid #333333;
+  padding: 10px 30px 10px 30px;
+  margin: 30px;
+}
+
+div.grouper{
+  width: 40%;
+  display: inline-grid;
 }
