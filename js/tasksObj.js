@@ -106,7 +106,7 @@ Atributos:
       _endDate = Fecha de finalización de la tarea (Date)
       _name = nombre de la tarea (String)
       _type = tipo de tarea (Definido según el Enum taskType) [taskType.CONTAINER, taskType.MILESTONE, taskType.TASK]
-      _progress = Entero? Flotante? que define el progreso de la tarea. (0-100?)(0-1?) [valor de 0 al crearse la tarea]
+      _progress = Flotante que define el progreso de la tarea. (0-1) [valor de 0.0 al crearse la tarea]
 */
 const Task = (function(){
     const _parent = new WeakMap();
@@ -115,15 +115,17 @@ const Task = (function(){
     const _name = new WeakMap();
     const _type = new WeakMap();
     const _progress = new WeakMap();
+    const _childrenTasks = new WeakMap();
 
     class Task {
         constructor(name, parent, beginDate, endDate,  type){
-            _parent.set(this, parent);
-            _beginDate.set(this, beginDate);
-            _endDate.set(this, endDate);
-            _name.set(this, name);
-            _type.set(this, type);
-            _progress.set(this, 0);
+            this.setParent(parent);
+            this.setType(type);
+            this.setName(name);
+            this.setBeginDate(beginDate);
+            this.setEndDate(endDate);
+            this.setProgress(this, 0.0);
+            _childrenTasks.set(this, []);
         }
 
         getParent(){
@@ -148,6 +150,38 @@ const Task = (function(){
 
         setEndDate(newDate){
             _endDate.set(this, newDate);
+        }
+
+        getName(){
+            return _name.get(this);
+        }
+
+        setName(newName){
+            _name.set(this, newName);
+        }
+
+        getType(){
+            return _type.get(this);
+        }
+
+        setType(newType){
+            _type.set(this, newType);
+        }
+
+        getProgress(){
+            return _progress.get(this);
+        }
+
+        setProgress(progress){
+            _progress.set(this, progress);
+        }
+
+        getChildrenTasks(){
+            return _childrenTasks.get(this);
+        }
+
+        pushTaskToChildrenTasks(newTask){
+            this.getChildrenTasks().push(newTask);
         }
 
         /*
@@ -175,26 +209,6 @@ const Task = (function(){
                     date2;
 
             return 1 + date2 - date1 - Math.floor((date2 - date1) / 7) * 2;
-        }
-
-        getName(){
-            return _name.get(this);
-        }
-
-        getType(){
-            return _type.get(this);
-        }
-
-        setType(newType){
-            _type.set(this, newType);
-        }
-
-        getProgress(){
-            return _progress.get(this);
-        }
-
-        setProgress(progress){
-            _progress.set(this, progress);
         }
 
         calculateProgress(){
