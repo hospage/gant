@@ -394,17 +394,7 @@ let Gant = (function () {
         createForm(){
             let newForm = createElementComplete('form', 'taskForm', '', '');
             let submit = Gant.createBtn("Agregar Tarea");
-            let object = this;
-
-            submit.onclick = function(){
-                let task = object.addTask();
-                console.log(object.getTaskList().toString());
-                console.log(object);
-                this.parentNode.parentNode.removeChild(this.parentNode);
-                document.body.firstChild.style.display = "none";
-                object.getInterfaceReference().appendChild(task.createDisplay());
-
-            };
+            this.assignSubmitOnClick(submit);
 
             newForm.appendChild(Gant.createCloseX());
             newForm.appendChild(Gant.createGrid());
@@ -413,6 +403,19 @@ let Gant = (function () {
             Gant.stylizeForm(newForm);
             Gant.addDarkenerDiv();
             return newForm;
+        }
+
+        assignSubmitOnClick(btn){
+            let object = this;
+            btn.onclick = function(){
+                let task = object.addTask();
+                console.log(object.getTaskList().toString());
+                console.log(object);
+                this.parentNode.parentNode.removeChild(this.parentNode);
+                document.getElementById("darkenerDiv").style.display = "none";
+                object.getInterfaceReference().appendChild(task.createDisplay());
+
+            };
         }
 
 
@@ -505,7 +508,7 @@ let Gant = (function () {
 
             newX.addEventListener("click", function(){
                 this.parentNode.parentNode.removeChild(this.parentNode);
-                document.body.firstChild.style.display = "none";
+                document.getElementById("darkenerDiv").style.display = "none";
             });
             return newX;
         }
@@ -540,7 +543,7 @@ let Gant = (function () {
         }
 
         static addDarkenerDiv(){
-            let divVar = createElementComplete("div", "", "", "");
+            let divVar = createElementComplete("div", "darkenerDiv", "", "");
             divVar.style.background = "#000";
             divVar.style.display = "none";
             divVar.style.opacity = "0.5";
