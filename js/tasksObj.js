@@ -521,14 +521,15 @@ let Gant = (function () {
             let beginDate = formData.getElementsByClassName("beginDate")[0];
             let endDate = formData.getElementsByClassName("endDate")[0];
 
-            let task = new Task(taskName.value,
+            let task = new Task(
+                taskName.value,
                 null,
                 DateUtilities.parseDate(beginDate.value),
                 DateUtilities.parseDate(endDate.value),
-                taskType.nameOf(type.options[type.selectedIndex].value));
+                taskType.nameOf(type.options[type.selectedIndex].value)
+            );
 
             this.pushTaskToTaskList(task);
-
             return task;
         }
 
