@@ -42,9 +42,11 @@ let Calendar = (function(){
     let _monthTh = new WeakMap();
     let _date = new WeakMap();
     let _reminderArray = new WeakMap();
+    let _isReminder = new WeakMap();
 
     class Calendar {
-        constructor(inputString) {
+        constructor(inputString, isReminder) {
+            _isReminder.set(this, isReminder != null ? isReminder : false);
             _reminderArray.set(this, []);
 
             let calendar = Calendar.createTable();
@@ -72,6 +74,14 @@ let Calendar = (function(){
         */
         getDate(){
             return _date.get(this);
+        }
+
+        isReminder(){
+            return _isReminder.get(this);
+        }
+
+        setReminderBoolean(isReminderBoolean){
+            _isReminder.set(this, isReminderBoolean);
         }
 
         /*
@@ -189,7 +199,9 @@ let Calendar = (function(){
         Void
         */
         pushValueReminder(value){
-            _reminderArray.get(this).push(value);
+            if(this.isReminder()) {
+                _reminderArray.get(this).push(value);
+            }
         };
 
         /*
@@ -200,7 +212,9 @@ let Calendar = (function(){
            Void
         */
         popValueReminder(index){
-            _reminderArray.get(this).splice(index, 1);
+            if(this.isReminder()) {
+                _reminderArray.get(this).splice(index, 1);
+            }
         };
 
         /*
@@ -212,10 +226,12 @@ let Calendar = (function(){
            sino, retorna -1
         */
         getIndexOfReminder(reminder){
-            for (let i = 0, arr = this.getReminderArray(); i < arr.length; i++) {
-                if (arr[i][0] === reminder[0] && arr[i][1] === reminder[1]
-                    && arr[i][2] === reminder[2] && arr[i][3] === reminder[3]){
-                    return i;
+            if (this.isReminder()) {
+                for (let i = 0, arr = this.getReminderArray(); i < arr.length; i++) {
+                    if (arr[i][0] === reminder[0] && arr[i][1] === reminder[1]
+                        && arr[i][2] === reminder[2] && arr[i][3] === reminder[3]) {
+                        return i;
+                    }
                 }
             }
             return -1;
@@ -400,17 +416,19 @@ let Calendar = (function(){
             Void
         */
         refreshReminders(){
-            this.getReminderArray().forEach(element =>{
-                let month, year;
-                if(DateUtilities.getMonthNumber(element[1]) === (month = DateUtilities.getMonthNumber(this.getMonthTh().innerHTML)) &&
-                    element[2] === (year = this.getSelectedYear())){
-                    let text = this.createP(element[3]);
-                    let row = 3 + Math.floor((parseInt(element[0]) + DateUtilities.getDayFromYear(year, month, 1) - 1)/7);
-                    let cell = DateUtilities.getDayFromYear(year, month, parseInt(element[0]));
+            if(this.isReminder()) {
+                this.getReminderArray().forEach(element => {
+                    let month, year;
+                    if (DateUtilities.getMonthNumber(element[1]) === (month = DateUtilities.getMonthNumber(this.getMonthTh().innerHTML)) &&
+                        element[2] === (year = this.getSelectedYear())) {
+                        let text = this.createP(element[3]);
+                        let row = 3 + Math.floor((parseInt(element[0]) + DateUtilities.getDayFromYear(year, month, 1) - 1) / 7);
+                        let cell = DateUtilities.getDayFromYear(year, month, parseInt(element[0]));
 
-                    this.getCalendarReference().rows[row].cells[cell].appendChild(text);
-                }
-            })
+                        this.getCalendarReference().rows[row].cells[cell].appendChild(text);
+                    }
+                })
+            }
         };
 
         /*
@@ -539,7 +557,8 @@ let Calendar = (function(){
             if (element.tagName === "TD"){
                 let object = this;
                 element.addEventListener("mouseenter", function () {
-                    if (object.getCalendarReference().getElementsByTagName("input").length === 0) {
+                    if (object.isReminder() &&
+                        object.getCalendarReference().getElementsByTagName("input").length === 0) {
                         let inputSaver = document.createElement("input");
                         Calendar.stylizeInput(inputSaver);
                         object.setInputReminderEvent(inputSaver);
@@ -547,7 +566,8 @@ let Calendar = (function(){
                     }
                 });
                 element.addEventListener("mouseleave", function () {
-                    if (element.getElementsByTagName("input").length !== 0) {
+                    if (object.isReminder() &&
+                        element.getElementsByTagName("input").length !== 0) {
                         this.removeChild(this.getElementsByTagName("input")[0]);
                     }
                 });
@@ -955,7 +975,7 @@ let Calendar = (function(){
             pElement.style.padding = "2px";
             pElement.style.borderRadius = "10px";
             pElement.style.fontSize = "6px";
-            pElement.style.backgroundColor = "#016FF2";
+            pElement.style.backgroundColor = "#dd4949";
             pElement.style.transition = "box-shadow 0.1s linear";
             pElement.style.msUserSelect = "none";
             pElement.style.webkitUserSelect = "none";
@@ -1013,7 +1033,7 @@ let Calendar = (function(){
             aElement.style.color = "white";
             aElement.style.borderRadius = "15px";
             aElement.style.fontSize = "1.1em";
-            aElement.style.backgroundColor = "#016FF2";
+            aElement.style.backgroundColor = "#dd4949";
             aElement.style.textDecoration = "none";
             aElement.style.display = "block";
             aElement.style.transition = "0.2s";
@@ -1030,7 +1050,7 @@ let Calendar = (function(){
                 this.style.backgroundColor = "rgb(90, 90, 90)";
             };
             aElement.onblur = function(){
-                this.style.backgroundColor = "#016FF2";
+                this.style.backgroundColor = "#dd4949";
             }
         };
 
