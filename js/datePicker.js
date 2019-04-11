@@ -1283,4 +1283,16 @@ class DateUtilities {
         )
     }
 
+    /*
+        11-Abril-2019
+        Convierte objeto Date en cadena
+        Argumentos:
+            dateObj = objeto Date
+        Retorna String
+    */
+
+    static dateToString(dateObj){
+        return dateObj.getDate() + "/" + (dateObj.getMonth() + 1) + "/" + dateObj.getFullYear();
+    }
+
 }
