@@ -235,63 +235,63 @@ const Task = (function(){
 
         }
 
-        static createTagsDivs(clase){
-            return [createElementComplete('div', '', clase, 'Nombre: '),
-                createElementComplete('div', '', clase, 'Fecha Inicial: '),
-                createElementComplete('div', '', clase, 'Fecha Final: '),
-                createElementComplete('div', '', clase, 'Progreso: '),
-                createElementComplete('div', '', clase, 'Tiempo Restante: '),
-                createElementComplete('div', '', clase, 'Agregar Avance: ')];
+        createTaskDivs(classTags, classValues){
+            let itemsArray = [
+                [
+                    createElementComplete('div', '', classTags, 'Nombre: '),
+                    createElementComplete('div', '', classValues, String(this.getName())),
+                    "150px"
+                    ],
+                [
+                    createElementComplete('div', '', classTags, 'Fecha Inicial: '),
+                    createElementComplete('div', '', classValues, DateUtilities.dateToString(this.getBeginDate())),
+                    "150px"
+                    ],
+                [
+                    createElementComplete('div', '', classTags, 'Fecha Final: '),
+                    createElementComplete('div', '', classValues, DateUtilities.dateToString(this.getEndDate())),
+                    "150px"
+                    ],
+                [
+                    createElementComplete('div', '', classTags, 'Progreso: '),
+                    createElementComplete('div', '', classValues, ''),
+                    "400px"
+                    ],
+                [
+                    createElementComplete('div', '', classTags, 'Tiempo Restante: '),
+                    createElementComplete('div', '', classValues, this.getRemainingTime()),
+                    "150px"
+                    ],
+                [
+                    createElementComplete('div', '', classTags, 'Agregar Avance: '),
+                    createElementComplete('div', '', classValues, ''),
+                    "150px"
+                ]
+            ];
+
+            itemsArray.forEach(function(item){
+                item[1].style.width = item[2];
+            });
+
+            itemsArray[3][1].appendChild(Task.createLoadBar());
+
+            return itemsArray;
         }
 
-        createValuesDivs(className){
-
+        static createLoadBar(){
+            let loadBar = createElementComplete('div', '', 'loadBar', ' ');
+            let loaded = createElementComplete('div', '', 'loaded', ' ');
+            loaded.style.width = "0%";
+            loadBar.appendChild(loaded);
+            return loadBar;
         }
 
         createDisplay(){
-
           let contenedor = createElementComplete('div', '', 'contenedor', '');
-          contenedor.draggable = "true";
-
           let box = document.createElement('div');
 
-          let tags = Task.createTagsDivs('tagName');
-
-          let loadBar = createElementComplete('div', '', 'loadBar', ' ');
-          let loaded = createElementComplete('div', '', 'loaded', ' ');
-
-          loaded.style.width = "0%";
-
-          loadBar.appendChild(loaded);
-
-          let fechaInicio = this.getBeginDate();
-          fechaInicio = String(fechaInicio.getDate()) + "/" + String(fechaInicio.getMonth()) + "/" + String(fechaInicio.getFullYear());
-          fechaInicio = String(fechaInicio);
-
-          let fechaFin = this.getEndDate();
-          let fechaFinStr = fechaFin.getDate() + "/" + fechaFin.getMonth() + "/" + fechaFin.getFullYear();
-
-          let values = [
-              createElementComplete('div', '', 'tagValue', String(this.getName())),
-              createElementComplete('div', '', 'tagValue', fechaInicio),
-              createElementComplete('div', '', 'tagValue', fechaFinStr),
-              createElementComplete('div', '', 'tagValue', ''),
-              createElementComplete('div', '', 'tagValue', this.getRemainingTime()),
-              createElementComplete('div', '', 'tagValue', '')
-          ];
-
-
-          let lengths = ["150px","150px","150px", "400px","150px","150px"];
-
-
-          values.forEach(function(item, index){
-            item.style.width = lengths[index];
-          });
-
-
-          values[3].appendChild(loadBar);
-
-          let top1 = tags.length/2;
+          let itemsArray = this.createTaskDivs('tagName', 'tagValue');
+          let top1 = itemsArray.length/2;
 
           for(let i = 0; i < top1; i++){
             let m = document.createElement('div');
@@ -300,11 +300,10 @@ const Task = (function(){
             kl.style.width = "250px";
             kr.style.width = "600px";
 
-
-            let k1 = tags[i];
-            let k2 = values[i];
-            let k3 = tags[i + top1];
-            let k4 = values[i + top1];
+            let k1 = itemsArray[i][0];
+            let k2 = itemsArray[i][1];
+            let k3 = itemsArray[i + top1][0];
+            let k4 = itemsArray[i + top1][1];
             kl.appendChild(k1);
             kl.appendChild(k2);
             kr.appendChild(k3);
