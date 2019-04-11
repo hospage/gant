@@ -124,7 +124,7 @@ const Task = (function(){
             this.setName(name);
             this.setBeginDate(beginDate);
             this.setEndDate(endDate);
-            this.setProgress(this, 0.0);
+            this.setProgress(0.0);
             _childrenTasks.set(this, []);
         }
 
@@ -235,6 +235,19 @@ const Task = (function(){
 
         }
 
+        static createTagsDivs(clase){
+            return [createElementComplete('div', '', clase, 'Nombre: '),
+                createElementComplete('div', '', clase, 'Fecha Inicial: '),
+                createElementComplete('div', '', clase, 'Fecha Final: '),
+                createElementComplete('div', '', clase, 'Progreso: '),
+                createElementComplete('div', '', clase, 'Tiempo Restante: '),
+                createElementComplete('div', '', clase, 'Agregar Avance: ')];
+        }
+
+        createValuesDivs(className){
+
+        }
+
         createDisplay(){
 
           let contenedor = createElementComplete('div', '', 'contenedor', '');
@@ -242,21 +255,12 @@ const Task = (function(){
 
           let box = document.createElement('div');
 
-
-          let clase = 'tagName';
-
-          let tags = [createElementComplete('div', '', clase, 'Nombre: '),
-          createElementComplete('div', '', clase, 'Fecha Inicial: '),
-          createElementComplete('div', '', clase, 'Fecha Final: '),
-          createElementComplete('div', '', clase, 'Progreso: '),
-          createElementComplete('div', '', clase, 'Tiempo Restante: '),
-          createElementComplete('div', '', clase, 'Agregar Avance: ')];
+          let tags = Task.createTagsDivs('tagName');
 
           let loadBar = createElementComplete('div', '', 'loadBar', ' ');
           let loaded = createElementComplete('div', '', 'loaded', ' ');
 
-
-          loaded.style.width = "20%";
+          loaded.style.width = "0%";
 
           loadBar.appendChild(loaded);
 
@@ -319,9 +323,9 @@ const Task = (function(){
         }
 
         toString(){
-            return "Name: " + this.getName() + "\nParent: " + this.getParent() + "\nBegin Date: " + this.getBeginDate()
-                + "\nEnd Date: " + this.getEndDate() + "\nTask type: " + this.getType() + "\nProgress: " +
-                this.getProgress().toString() + "%\n\n";
+            return "Name: " + this.getName() + "\nParent: " + String(this.getParent()) + "\nBegin Date: " + String(this.getBeginDate())
+            + "\nEnd Date: " + String(this.getEndDate()) + "\nTask type: " + String(this.getType()) + "\nProgress: " +
+            String(this.getProgress()) + "%\n\n";
         }
 
     }
