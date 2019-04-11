@@ -259,7 +259,7 @@ const Task = (function(){
                     ],
                 [
                     createElementComplete('div', '', classTags, 'Tiempo Restante: '),
-                    createElementComplete('div', '', classValues, this.getRemainingTime()),
+                    createElementComplete('div', '', classValues, this.getRemainingTime() + " día(s)"),
                     "150px"
                     ],
                 [
