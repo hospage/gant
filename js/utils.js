@@ -2,22 +2,14 @@
 function createElementComplete(element, identifier, className, innerText){
   let t = document.createElement(element);
 
-  if(identifier !== '' && className !== ''){
-    t.className = className;
-    t.id = identifier;
+  if(identifier !== ''){
+      t.id = identifier;
   }
-  else{
-    if(identifier !== ''){
-      t.identifier = String(className);
-    }
-    else if(className !== '') {
-      t.className = String(className);
-    }
+  if(className !== ''){
+      t.className = className;
   }
-
   if(innerText !== ''){
-    let txt = document.createTextNode(String(innerText));
-    t.appendChild(txt);
+    t.appendChild(document.createTextNode(String(innerText)));
   }
 
   return t;
