@@ -11,7 +11,7 @@ function Enum(name, values) {
         for (let index = 0; index < keys.length; index += 1) {
             let key = keys[index];
             if (this[key] === value) {
-                return `${name}.${key}`;
+                return this[key];
             }
         }
     }
@@ -314,22 +314,24 @@ const Task = (function(){
             let object = this;
 
             loadBar.onclick = function(ev){
-                ev.stopPropagation();
-                let xPos = this.getBoundingClientRect().left;
-                let xEnd = this.getBoundingClientRect().right;
-                let xMouse = ev.clientX;
+                if(object.getType() === taskType.TASK) {
+                    ev.stopPropagation();
+                    let xPos = this.getBoundingClientRect().left;
+                    let xEnd = this.getBoundingClientRect().right;
+                    let xMouse = ev.clientX;
 
-                let progressFloat = (parseFloat(xMouse) - xPos) / (xEnd - xPos);
-                if (progressFloat < 0.02)
-                    progressFloat = 0;
-                else if (progressFloat > 0.98)
-                    progressFloat = 1;
+                    let progressFloat = (parseFloat(xMouse) - xPos) / (xEnd - xPos);
+                    if (progressFloat < 0.02)
+                        progressFloat = 0;
+                    else if (progressFloat > 0.98)
+                        progressFloat = 1;
 
-                console.log(xEnd - parseFloat(xPos));
+                    console.log(xEnd - parseFloat(xPos));
 
-                this.childNodes[0].style.width = (progressFloat * 100) + "%";
-                object.setProgress(progressFloat);
-                console.log(object.getProgress());
+                    this.childNodes[0].style.width = (progressFloat * 100) + "%";
+                    object.setProgress(progressFloat);
+                    console.log(object.getProgress());
+                }
             };
 
             loaded.style.width = "0%";
