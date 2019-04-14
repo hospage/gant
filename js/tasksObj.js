@@ -249,6 +249,12 @@ const Task = (function(){
         calculateProgress(){
             if(this.getType() == taskType.CONTAINER){
                 let arr = this.getChildrenTasks();
+                let progreso_total = 0.0000;
+                let dias_totales = this.getRemainingTime();
+                arr.forEach(function(item){
+                    progreso_total += (item.getRemainingTime()/dias_totales)*item.calculateProgress(); 
+                })
+                return progreso_total;
             }
             else if(this.getType() == taskType.TASK){
                 return this.getProgress();
