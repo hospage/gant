@@ -116,15 +116,21 @@ const Task = (function(){
     const _type = new WeakMap();
     const _progress = new WeakMap();
     const _childrenTasks = new WeakMap();
+    const _displayReference = new WeakMap();
+    const _idString = new WeakMap();
+    const _gant = new WeakMap();
 
     class Task {
-        constructor(name, parent, beginDate, endDate,  type){
+        constructor(name, parent, beginDate, endDate,  type, idString, gant){
             this.setParent(parent);
             this.setType(type);
             this.setName(name);
             this.setBeginDate(beginDate);
             this.setEndDate(endDate);
             this.setProgress(0.0);
+            this.setDisplayReference(this.createDisplay());
+            this.setGant(gant);
+            this.setIdString(idString);
             _childrenTasks.set(this, []);
         }
 
@@ -182,6 +188,30 @@ const Task = (function(){
 
         pushTaskToChildrenTasks(newTask){
             this.getChildrenTasks().push(newTask);
+        }
+
+        setDisplayReference(newDisplayReference){
+            _displayReference.set(this, newDisplayReference);
+        }
+
+        getDisplayReference(){
+            return _displayReference.get(this);
+        }
+
+        setIdString(newString){
+            _idString.set(this, newString);
+        }
+
+        getIdString(){
+            return _idString.get(this);
+        }
+
+        setGant(newGant){
+            _gant.set(this, newGant);
+        }
+
+        getGant(){
+            return _gant.get(this);
         }
 
         /*
@@ -286,39 +316,65 @@ const Task = (function(){
             return loadBar;
         }
 
+        arrangeDisplayItems(container){
+            let itemsArray = this.createTaskDivs('tagName', 'tagValue');
+            let top1 = itemsArray.length/2;
+
+            for(let i = 0; i < top1; i++){
+                let m = document.createElement('div');
+                let kl = createElementComplete('div', '', 'grouper', '');
+                let kr = createElementComplete('div', '', 'grouper', '');
+                kl.style.width = "250px";
+                kr.style.width = "600px";
+
+                let k1 = itemsArray[i][0];
+                let k2 = itemsArray[i][1];
+                let k3 = itemsArray[i + top1][0];
+                let k4 = itemsArray[i + top1][1];
+                kl.appendChild(k1);
+                kl.appendChild(k2);
+                kr.appendChild(k3);
+                kr.appendChild(k4);
+
+                m.appendChild(kl);
+                m.appendChild(kr);
+
+                container.appendChild(m);
+            }
+        }
+
         createDisplay(){
-          let contenedor = createElementComplete('div', '', 'contenedor', '');
-          let box = document.createElement('div');
+            let contenedor = createElementComplete('div', '', 'contenedor', '');
+            let object = this;
+            contenedor.draggable = "true";
 
-          let itemsArray = this.createTaskDivs('tagName', 'tagValue');
-          let top1 = itemsArray.length/2;
+            contenedor.ondragstart = function(ev){
+                object.dragTask(ev);
+            };
 
-          for(let i = 0; i < top1; i++){
-            let m = document.createElement('div');
-            let kl = createElementComplete('div', '', 'grouper', '');
-            let kr = createElementComplete('div', '', 'grouper', '');
-            kl.style.width = "250px";
-            kr.style.width = "600px";
+            contenedor.ondragover = function(ev){
+                ev.preventDefault();
+            };
 
-            let k1 = itemsArray[i][0];
-            let k2 = itemsArray[i][1];
-            let k3 = itemsArray[i + top1][0];
-            let k4 = itemsArray[i + top1][1];
-            kl.appendChild(k1);
-            kl.appendChild(k2);
-            kr.appendChild(k3);
-            kr.appendChild(k4);
+            contenedor.ondrop = function(ev){
+                object.dropTask(ev);
+            };
 
-            m.appendChild(kl);
-            m.appendChild(kr);
+            this.arrangeDisplayItems(contenedor);
 
-            box.appendChild(m);
-          }
+            return contenedor;
 
-          contenedor.appendChild(box);
+        }
 
+        dragTask(event){
+            event.dataTransfer.setData("text/idString", this.getIdString());
+            event.dataTransfer.effectAllowed = "move";
+        }
 
-          return contenedor;
+        dropTask(event){
+            event.preventDefault();
+            let originTask = this.getGant().getTaskFromIdString(event.dataTransfer.getData("text/idString"));
+            console.log("Origen: " + originTask + "\nDestino: " + this);
         }
 
         toString(){
@@ -343,12 +399,14 @@ let Gant = (function () {
     let _taskList = new WeakMap();
     let _formReference = new WeakMap();
     let _interfaceReference = new WeakMap();
+    let _taskCounter = new WeakMap();
 
     class Gant {
         constructor(){
             _taskList.set(this, []);
             _formReference.set(this, this.createForm());
             _interfaceReference.set(this, this.drawInterface());
+            _taskCounter.set(this, 0);
         }
 
         getFormReference(){
@@ -364,20 +422,36 @@ let Gant = (function () {
         }
 
         getTaskFromTaskList(index){
-            return _taskList.get(this)[index];
+            return this.getTaskList()[index];
+        }
+
+        getTaskFromIdString(idString){
+            let tasks = this.getTaskList();
+            for (let i = 0; i < tasks.length; i++){
+                if(tasks[i].getIdString() === idString)
+                    return tasks[i];
+            }
+            return null;
         }
 
         pushTaskToTaskList(newTask){
-            _taskList.get(this).push(newTask);
+            this.getTaskList().push(newTask);
         }
 
         popTaskFromTaskList(index){
-            _taskList.get(this).splice(index, 1);
+            this.getTaskList().splice(index, 1);
+        }
+
+        getTaskCounter(){
+            return _taskCounter.get(this);
+        }
+
+        increaseTaskCounter(){
+            _taskCounter.set(this, _taskCounter.get(this) + 1)
         }
 
         drawInterface(){
             let newInterface = createElementComplete("div", "gantInterface", "contenedorMaestro", "");
-
 
             let newButton = Gant.createBtn("Nueva tarea");
             let object = this;
@@ -410,11 +484,9 @@ let Gant = (function () {
             btn.onclick = function(){
                 let task = object.addTask();
                 console.log(object.getTaskList().toString());
-                console.log(object);
                 this.parentNode.parentNode.removeChild(this.parentNode);
                 document.getElementById("darkenerDiv").style.display = "none";
-                object.getInterfaceReference().appendChild(task.createDisplay());
-
+                object.getInterfaceReference().appendChild(task.getDisplayReference());
             };
         }
 
@@ -526,9 +598,12 @@ let Gant = (function () {
                 null,
                 DateUtilities.parseDate(beginDate.value),
                 DateUtilities.parseDate(endDate.value),
-                taskType.nameOf(type.options[type.selectedIndex].value)
+                taskType.nameOf(type.options[type.selectedIndex].value),
+                "task#" + this.getTaskCounter(),
+                this
             );
 
+            this.increaseTaskCounter();
             this.pushTaskToTaskList(task);
             return task;
         }
