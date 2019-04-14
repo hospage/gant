@@ -303,14 +303,35 @@ const Task = (function(){
                 item[1].style.width = item[2];
             });
 
-            itemsArray[3][1].appendChild(Task.createLoadBar());
+            itemsArray[3][1].appendChild(this.createLoadBar());
 
             return itemsArray;
         }
 
-        static createLoadBar(){
-            let loadBar = createElementComplete('div', '', 'loadBar', ' ');
-            let loaded = createElementComplete('div', '', 'loaded', ' ');
+        createLoadBar(){
+            let loadBar = createElementComplete('div', '', 'loadBar', '');
+            let loaded = createElementComplete('div', '', 'loaded', "\xa0");
+            let object = this;
+
+            loadBar.onclick = function(ev){
+                ev.stopPropagation();
+                let xPos = this.getBoundingClientRect().left;
+                let xEnd = this.getBoundingClientRect().right;
+                let xMouse = ev.clientX;
+
+                let progressFloat = (parseFloat(xMouse) - xPos) / (xEnd - xPos);
+                if (progressFloat < 0.02)
+                    progressFloat = 0;
+                else if (progressFloat > 0.98)
+                    progressFloat = 1;
+
+                console.log(xEnd - parseFloat(xPos));
+
+                this.childNodes[0].style.width = (progressFloat * 100) + "%";
+                object.setProgress(progressFloat);
+                console.log(object.getProgress());
+            };
+
             loaded.style.width = "0%";
             loadBar.appendChild(loaded);
             return loadBar;
@@ -374,7 +395,9 @@ const Task = (function(){
         dropTask(event){
             event.preventDefault();
             let originTask = this.getGant().getTaskFromIdString(event.dataTransfer.getData("text/idString"));
-            console.log("Origen: " + originTask + "\nDestino: " + this);
+            if(originTask !== this) {
+                console.log("Origen: " + originTask + "\nDestino: " + this);
+            }
         }
 
         toString(){
@@ -483,7 +506,6 @@ let Gant = (function () {
             let object = this;
             btn.onclick = function(){
                 let task = object.addTask();
-                console.log(object.getTaskList().toString());
                 this.parentNode.parentNode.removeChild(this.parentNode);
                 document.getElementById("darkenerDiv").style.display = "none";
                 object.getInterfaceReference().appendChild(task.getDisplayReference());
