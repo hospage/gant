@@ -214,6 +214,11 @@ const Task = (function(){
             return _gant.get(this);
         }
 
+        getParentChildren(){
+            if (this.getParent() !== null)
+                return this.getParent().getChildrenTasks();
+        }
+
         /*
             31-Marzo-2019
             Obtiene el número de dias entre _beginDate y _endDate
