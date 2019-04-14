@@ -242,7 +242,15 @@ const Task = (function(){
         }
 
         calculateProgress(){
+            if(this.getType() == taskType.CONTAINER){
+                
+            }
+            else if(this.getType() == taskType.TASK){
 
+            }
+            else{
+                return 1;
+            }
         }
 
         addTask(newTask){
