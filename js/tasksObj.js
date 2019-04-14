@@ -225,7 +225,8 @@ const Task = (function(){
             let one_day=1000*60*60*24;
 
             //Conversión de ambas fechas a días
-            let date1 = Math.round(this.getBeginDate().getTime() / one_day);
+            let date1 = Math.
+            round(this.getBeginDate().getTime() / one_day);
             let date2 = Math.round(this.getEndDate().getTime() / one_day);
 
             //Suma los días correspondientes si la fecha de inicio ingresada es un sábado o un domingo
@@ -243,10 +244,10 @@ const Task = (function(){
 
         calculateProgress(){
             if(this.getType() == taskType.CONTAINER){
-                
+                let arr = this.getChildrenTasks();
             }
             else if(this.getType() == taskType.TASK){
-
+                return this.getProgress();
             }
             else{
                 return 1;
