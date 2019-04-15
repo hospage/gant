@@ -545,17 +545,25 @@ const Task = (function(){
             let originTask = this.getGant().getTaskFromIdString(event.dataTransfer.getData("text/idString"));
             if (originTask !== this && !this.isDescendant(originTask)) {
                 this.pushTaskToChildrenTasks(originTask);
-                originTask.updateSelfPosition();
+                originTask.updateTask();
             }
         }
 
-        updateSelfPosition() {
-            if (this.getParent() !== null) {
-                let margin = this.getParent().getDisplayReference().style.marginLeft;
+        updateTask() {
+            let parent = this.getParent();
+            if (parent !== null) {
+                let parentRef = parent.getDisplayReference();
+                let displayRef = this.getDisplayReference();
+                let margin = parentRef.style.marginLeft;
                 let parent_margin = margin !== "" ? parseInt(margin) : 0;
-
+                displayRef.parentNode.removeChild(displayRef);
+                parentRef.parentNode.insertBefore(displayRef, parentRef.nextElementSibling);
                 this.getDisplayReference().style.marginLeft = 100 + parent_margin + "px";
+                this.getChildrenTasks().forEach(function(item){
+                    item.updateTask();
+                });
             }
+            this.calculateProgress();
         }
 
         createHideButton(){
