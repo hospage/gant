@@ -124,7 +124,7 @@ const Task = (function(){
     const _idString = new WeakMap();
     const _gant = new WeakMap();
     class Task {
-        constructor(name, parent, beginDate, endDate,  type, idString, gant){
+        constructor(name, parent, beginDate, endDate, type, idString, gant) {
             this.setParent(parent);
             this.setType(type);
             this.setName(name);
@@ -136,62 +136,75 @@ const Task = (function(){
             this.setIdString(idString);
             _childrenTasks.set(this, []);
         }
+
         //Obtiene la tarea padre de un hijo
-        getParent(){
+        getParent() {
             return _parent.get(this);
         }
+
         //Define el padre de una tarea
-        setParent(newParent){
+        setParent(newParent) {
             _parent.set(this, newParent)
         }
+
         //Obtiene la fecha de inicio de una tarea
-        getBeginDate(){
+        getBeginDate() {
             return _beginDate.get(this);
         }
+
         //Define la fecha de inicio de una tarea
-        setBeginDate(newDate){
+        setBeginDate(newDate) {
             _beginDate.set(this, newDate);
         }
+
         //Obtiene la fecha final de una tarea
-        getEndDate(){
+        getEndDate() {
             return _endDate.get(this);
         }
+
         //Encapsula la fecha final de una tarea
-        setEndDate(newDate){
+        setEndDate(newDate) {
             _endDate.set(this, newDate);
         }
+
         //Obtiene el nombre de una tarea
-        getName(){
+        getName() {
             return _name.get(this);
         }
+
         //Encapsula el nombre de una tarea
-        setName(newName){
+        setName(newName) {
             _name.set(this, newName);
         }
+
         //Obtiene el tipo de un objeto tarea (contenedor, hito, tarea)
-        getType(){
+        getType() {
             return _type.get(this);
         }
-        //Encapsula el tipo de un objeto tarea 
-        setType(newType){
+
+        //Encapsula el tipo de un objeto tarea
+        setType(newType) {
             _type.set(this, newType);
         }
+
         //Obtiene el progreso de una tarea
-        getProgress(){
+        getProgress() {
             return _progress.get(this);
         }
+
         //Encapsula el progreso de una tarea
-        setProgress(progress){
+        setProgress(progress) {
             _progress.set(this, progress);
         }
-        //Obtiene el arreglo de tareas que son hijos 
-        getChildrenTasks(){ 
+
+        //Obtiene el arreglo de tareas que son hijos
+        getChildrenTasks() {
             return _childrenTasks.get(this);
         }
 
-        isDescendant(task){
+        isDescendant(task) {
             let parentTask = this.getParent();
-            if(parentTask === null)
+            if (parentTask === null)
                 return false;
             else if (parentTask === task)
                 return true;
@@ -199,63 +212,69 @@ const Task = (function(){
                 parentTask.isDescendant(task);
         }
 
-        pushTaskToChildrenTasks(newTask){
+        pushTaskToChildrenTasks(newTask) {
             if (this.getChildrenTasks().length === 0)
                 this.setType(taskType.CONTAINER);
 
             let childrenArr = this.getChildrenTasks();
-            for (let i = 0 ; i < childrenArr.length ; i++){
-                if(childrenArr[i] === newTask)
+            for (let i = 0; i < childrenArr.length; i++) {
+                if (childrenArr[i] === newTask)
                     return;
             }
             this.getChildrenTasks().push(newTask);
-            if(newTask.getParent() != null)
+            if (newTask.getParent() != null)
                 newTask.getParent().popTaskFromChildrenTasks(newTask);
             newTask.setParent(this);
         }
 
-        popTaskFromChildrenTasksIndex(index){
+        popTaskFromChildrenTasksIndex(index) {
             this.getChildrenTasks().splice(index, 1);
         }
+
         //Encapsula la referencia del objeto
-        setDisplayReference(newDisplayReference){
+        setDisplayReference(newDisplayReference) {
             _displayReference.set(this, newDisplayReference);
         }
+
         //Obtiene la referencia de un objeto del tipo tarea
-        getDisplayReference(){
+        getDisplayReference() {
             return _displayReference.get(this);
         }
+
         //Encapsula el id de una tarea
-        setIdString(newString){
+        setIdString(newString) {
             _idString.set(this, newString);
         }
+
         //Obtiene el id de una tarea
-        getIdString(){
+        getIdString() {
             return _idString.get(this);
         }
+
         //Encapsula el GANT al que pertenece
-        setGant(newGant){
+        setGant(newGant) {
             _gant.set(this, newGant);
         }
+
         //Obtiene el GANT al que pertenece
-        getGant(){
+        getGant() {
             return _gant.get(this);
         }
 
-        popTaskFromChildrenTasks(task){
+        popTaskFromChildrenTasks(task) {
             this.popTaskFromChildrenTasksIndex(this.getChildTaskIndex(task));
         }
 
-        getChildTaskIndex(task){
+        getChildTaskIndex(task) {
             let arr = this.getChildrenTasks();
-            for (let i = 0 ; i < arr.length ; i++){
-                if(arr[i] === task)
+            for (let i = 0; i < arr.length; i++) {
+                if (arr[i] === task)
                     return i;
             }
             return arr.length;
         }
 
-        getParentChildren(){
+        getParentChildren() {
             if (this.getParent() !== null)
                 return this.getParent().getChildrenTasks();
         }
@@ -266,9 +285,9 @@ const Task = (function(){
             Argumentos: ninguno
             Retorna entero
         */
-        getRemainingTime(){
+        getRemainingTime() {
             //Segundos dentro de un día
-            let one_day=1000*60*60*24;
+            let one_day = 1000 * 60 * 60 * 24;
 
             //Conversión de ambas fechas a días
             let date1 = Math.round(this.getBeginDate().getTime() / one_day);
@@ -286,72 +305,67 @@ const Task = (function(){
 
             return 1 + date2 - date1 - Math.floor((date2 - date1) / 7) * 2;
         }
+
         //Calcula el progreso total de una tarea, tomando en cuenta si es contenedor o tarea
-        calculateProgress(){
-            if(this.getType() === taskType.CONTAINER){
+        calculateProgress() {
+            if (this.getType() === taskType.CONTAINER) {
                 let arr = this.getChildrenTasks();
                 let progreso_total = 0.0000;
                 let dias_totales = this.getRemainingTime();
-                arr.forEach(function(item){
-                    progreso_total += (item.getRemainingTime()/dias_totales)*item.calculateProgress(); 
+                arr.forEach(function (item) {
+                    progreso_total += (item.getRemainingTime() / dias_totales) * item.calculateProgress();
                 });
                 return progreso_total;
-            }
-            else if(this.getType() === taskType.TASK){
+            } else if (this.getType() === taskType.TASK) {
                 return this.getProgress();
-            }
-            else{
+            } else {
                 return 1;
             }
         }
 
-        addTask(newTask){
+        addTask(newTask) {
 
         }
 
-        drawTask(){
+        drawTask() {
 
         }
 
-        hideChildren(){
+        deleteTask(taskRef) {
 
         }
 
-        deleteTask(taskRef){
+        addUser(newUser) {
 
         }
 
-        addUser(newUser){
-
-        }
-
-        createTaskDivs(classTags, classValues){
+        createTaskDivs(classTags, classValues) {
             let itemsArray = [
                 [
                     createElementComplete('div', '', classTags, 'Nombre: '),
                     createElementComplete('div', '', classValues, String(this.getName())),
                     "150px"
-                    ],
+                ],
                 [
                     createElementComplete('div', '', classTags, 'Fecha Inicial: '),
                     createElementComplete('div', '', classValues, DateUtilities.dateToString(this.getBeginDate())),
                     "150px"
-                    ],
+                ],
                 [
                     createElementComplete('div', '', classTags, 'Fecha Final: '),
                     createElementComplete('div', '', classValues, DateUtilities.dateToString(this.getEndDate())),
                     "150px"
-                    ],
+                ],
                 [
                     createElementComplete('div', '', classTags, 'Progreso: '),
                     createElementComplete('div', '', classValues, ''),
                     "400px"
-                    ],
+                ],
                 [
                     createElementComplete('div', '', classTags, 'Tiempo Restante: '),
                     createElementComplete('div', '', classValues, this.getRemainingTime() + " día(s)"),
                     "150px"
-                    ],
+                ],
                 [
                     createElementComplete('div', '', classTags, ''),
                     createElementComplete('div', '', classValues, ''),
@@ -359,7 +373,7 @@ const Task = (function(){
                 ]
             ];
 
-            itemsArray.forEach(function(item){
+            itemsArray.forEach(function (item) {
                 item[1].style.width = item[2];
             });
 
@@ -370,7 +384,7 @@ const Task = (function(){
             return itemsArray;
         }
 
-        createLoadBar(){
+        createLoadBar() {
             let loadBar = createElementComplete('div', '', 'loadBar', '');
             let loaded = createElementComplete('div', '', 'loaded', "\xa0");
             this.setLoadBarListeners(loadBar);
@@ -379,10 +393,10 @@ const Task = (function(){
             return loadBar;
         }
 
-        setLoadBarListeners(loadBar){
+        setLoadBarListeners(loadBar) {
             let object = this;
-            loadBar.onclick = function(ev){
-                if(object.getType() === taskType.TASK) {
+            loadBar.onclick = function (ev) {
+                if (object.getType() === taskType.TASK) {
                     ev.stopPropagation();
                     let xPos = this.getBoundingClientRect().left;
                     let xEnd = this.getBoundingClientRect().right;
@@ -403,9 +417,9 @@ const Task = (function(){
             };
         }
 
-        arrangeDisplayItems(container){
+        arrangeDisplayItems(container) {
             let itemsArray = this.createTaskDivs('tagName', 'tagValue');
-            let top1 = itemsArray.length/2;
+            let top1 = itemsArray.length / 2;
 
 
             let o = createElementComplete('div', '', 'register', '');
@@ -428,7 +442,7 @@ const Task = (function(){
             parameters.style.transition = "1.3s";
             parameters.style.opacity = "1";
 
-            for(let i = 1; i < top1; i++){
+            for (let i = 1; i < top1; i++) {
                 let m = createElementComplete('div', '', 'register', '');
                 let kl = createElementComplete('div', '', 'grouper', '');
                 let kr = createElementComplete('div', '', 'grouper', '');
@@ -454,7 +468,7 @@ const Task = (function(){
             container.appendChild(parameters);
         }
 
-        createDisplay(){
+        createDisplay() {
             let contenedor = createElementComplete('div', '', 'contenedor', '');
             let object = this;
             let box = document.createElement('div');
@@ -464,15 +478,15 @@ const Task = (function(){
 
             contenedor.appendChild(this.createHideButton());
 
-            contenedor.ondragstart = function(ev){
+            contenedor.ondragstart = function (ev) {
                 object.dragTask(ev);
             };
 
-            contenedor.ondragover = function(ev){
+            contenedor.ondragover = function (ev) {
                 ev.preventDefault();
             };
 
-            contenedor.ondrop = function(ev){
+            contenedor.ondrop = function (ev) {
                 object.dropTask(ev);
             };
 
@@ -483,30 +497,51 @@ const Task = (function(){
 
         }
 
-        dragTask(event){
+        hideChildren(){
+            let arr = this.getChildrenTasks();
+            if (arr.length !== 0){
+                arr.forEach(function(item){
+                   item.hideChildren();
+                   item.getDisplayReference().style.display = "none";
+                });
+            }
+            else
+                this.getDisplayReference().style.display = "none";
+        }
+
+        displayChildren(){
+            let arr = this.getChildrenTasks();
+            if(arr.length !== 0){
+                arr.forEach(function (item) {
+                    item.displayChildren();
+                    item.getDisplayReference().style.display = "block";
+                })
+            }
+            else
+                this.getDisplayReference().style.display = "block";
+        }
+
+        dragTask(event) {
             event.dataTransfer.setData("text/idString", this.getIdString());
             event.dataTransfer.effectAllowed = "move";
         }
 
-        dropTask(event){
+        dropTask(event) {
             event.preventDefault();
             let originTask = this.getGant().getTaskFromIdString(event.dataTransfer.getData("text/idString"));
-            if(originTask !== this && !this.isDescendant(originTask)) {
+            if (originTask !== this && !this.isDescendant(originTask)) {
                 this.pushTaskToChildrenTasks(originTask);
-            }
-            
-        }
-        updateSelfPosition(){
-            if(this.getParent() != null){
-                let posicion_padre = parseInt(this.getParent().style.marginLeft);
-                this.style.marginLeft = 15 + posicion_padre + "px";
+                originTask.updateSelfPosition();
             }
         }
-        //Obtiene todos los atributos de una tarea y los pone en una cadena
-        toString(){
-            return "Name: " + this.getName() + "\nParent: " + this.getParent().getIdString() + "\nBegin Date: " + String(this.getBeginDate())
-            + "\nEnd Date: " + String(this.getEndDate()) + "\nTask type: " + String(this.getType()) + "\nProgress: " +
-            String(this.getProgress()) + "%\n\n";
+
+        updateSelfPosition() {
+            if (this.getParent() !== null) {
+                let margin = this.getParent().getDisplayReference().style.marginLeft;
+                let parent_margin = margin !== "" ? parseInt(margin) : 0;
+
+                this.getDisplayReference().style.marginLeft = 100 + parent_margin + "px";
+            }
         }
 
         createHideButton(){
@@ -516,41 +551,36 @@ const Task = (function(){
             newX.style.display = "block";
             newX.style.cssFloat = "left";
             newX.style.cursor = "pointer";
-            newX.style.position = "fixed";
+            newX.style.position = "absolute";
             newX.style.height = newX.style.lineHeight = "20px";
             newX.style.WebkitTransitionDuration = "1s";
 
             let object = this;
 
             newX.addEventListener("click", function(){
-              if(this.className == "show"){
+              if(this.className === "show"){
                 this.parentNode.childNodes[1].childNodes[1].style.opacity = "0";
                 this.parentNode.childNodes[1].childNodes[1].style.visibility = "hidden";
                 this.className = "hidden";
                 this.parentNode.style.maxHeight = "30px";
-                object.getChildrenTasks().forEach(function(item, index){
-                  item.getDisplayReference().style.visibility = "hidden";
-                  item.forEach(function(i){
-                    i._displayReference().style.visibility = "hidden";
-                  });
-                });
+                object.hideChildren();
               }
               else{
                 this.className = "show";
                 this.parentNode.childNodes[1].childNodes[1].style.opacity = "1";
                 this.parentNode.childNodes[1].childNodes[1].style.visibility = "visible";
                 this.parentNode.style.maxHeight = "100px";
-                object.getChildrenTasks().forEach(function(item, index){
-                  item.getDisplayReference().style.visibility = "visible";
-                  item.forEach(function(i){
-                    i._displayReference().style.visibility = "visible";
-                  });
-                });
+                object.displayChildren();
               }
-
-
             });
             return newX;
+        }
+
+        //Obtiene todos los atributos de una tarea y los pone en una cadena
+        toString() {
+            return "Name: " + this.getName() + "\nParent: " + this.getParent().getIdString() + "\nBegin Date: " + String(this.getBeginDate())
+                + "\nEnd Date: " + String(this.getEndDate()) + "\nTask type: " + String(this.getType()) + "\nProgress: " +
+                String(this.getProgress()) + "%\n\n";
         }
 
     }
