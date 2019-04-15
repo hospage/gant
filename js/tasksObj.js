@@ -217,13 +217,17 @@ const Task = (function(){
                 this.setType(taskType.CONTAINER);
 
             let childrenArr = this.getChildrenTasks();
+            let parent = newTask.getParent();
             for (let i = 0; i < childrenArr.length; i++) {
                 if (childrenArr[i] === newTask)
                     return;
             }
             this.getChildrenTasks().push(newTask);
-            if (newTask.getParent() != null)
-                newTask.getParent().popTaskFromChildrenTasks(newTask);
+            if (parent != null) {
+                parent.popTaskFromChildrenTasks(newTask);
+                if(parent.getChildrenTasks().length === 0)
+                    parent.setType(taskType.TASK);
+            }
             newTask.setParent(this);
         }
 
@@ -327,10 +331,6 @@ const Task = (function(){
 
         }
 
-        drawTask() {
-
-        }
-
         deleteTask(taskRef) {
 
         }
@@ -420,7 +420,6 @@ const Task = (function(){
         arrangeDisplayItems(container) {
             let itemsArray = this.createTaskDivs('tagName', 'tagValue');
             let top1 = itemsArray.length / 2;
-
 
             let o = createElementComplete('div', '', 'register', '');
             let pl = createElementComplete('div', '', 'grouper', '');
@@ -520,12 +519,20 @@ const Task = (function(){
             let arr = this.getChildrenTasks();
             if(arr.length !== 0){
                 arr.forEach(function (item) {
+                    item.displayTask();
+                })
+            }
+        }
+
+        displayTask(){
+            let arr = this.getChildrenTasks();
+            if(arr.length !== 0){
+                arr.forEach(function (item) {
                     item.displayChildren();
                     item.getDisplayReference().style.display = "block";
                 })
             }
-            else
-                this.getDisplayReference().style.display = "block";
+            this.getDisplayReference().style.display = "block";
         }
 
         dragTask(event) {
