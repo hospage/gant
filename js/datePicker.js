@@ -1315,4 +1315,10 @@ class DateUtilities {
         return dateObj.getDate() + "/" + (dateObj.getMonth() + 1) + "/" + dateObj.getFullYear();
     }
 
+    static leastDate(date1, date2){
+        if(date1.getTime() < date2.getTime())
+            return date1;
+        return date2;
+    }
+
 }

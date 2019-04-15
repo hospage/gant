@@ -311,19 +311,29 @@ const Task = (function(){
         }
 
         //Calcula el progreso total de una tarea, tomando en cuenta si es contenedor o tarea
-        calculateProgress() {
+        updateProgress() {
             if (this.getType() === taskType.CONTAINER) {
                 let arr = this.getChildrenTasks();
                 let progreso_total = 0.0000;
                 let dias_totales = this.getRemainingTime();
                 arr.forEach(function (item) {
-                    progreso_total += (item.getRemainingTime() / dias_totales) * item.calculateProgress();
+                    progreso_total += (item.getRemainingTime() / dias_totales) * item.updateProgress();
                 });
+                this.setProgress(progreso_total);
                 return progreso_total;
             } else if (this.getType() === taskType.TASK) {
                 return this.getProgress();
             } else {
                 return 1;
+            }
+        }
+
+        updateParentProgress(){
+            if(this.getParent() != null){
+                this.getParent().updateParentProgress();
+            }
+            else{
+                this.updateProgress();
             }
         }
 
@@ -412,6 +422,7 @@ const Task = (function(){
 
                     this.childNodes[0].style.width = (progressFloat * 100) + "%";
                     object.setProgress(progressFloat);
+                    object.updateParentProgress();
                     console.log(object.getProgress());
                 }
             };
@@ -563,7 +574,7 @@ const Task = (function(){
                     item.updateTask();
                 });
             }
-            this.calculateProgress();
+            this.updateParentProgress();
         }
 
         createHideButton(){
@@ -701,9 +712,11 @@ let Gant = (function () {
             let object = this;
             btn.onclick = function(){
                 let task = object.addTask();
-                this.parentNode.parentNode.removeChild(this.parentNode);
-                document.getElementById("darkenerDiv").style.display = "none";
-                object.getInterfaceReference().appendChild(task.getDisplayReference());
+                if(task != null) {
+                    this.parentNode.parentNode.removeChild(this.parentNode);
+                    document.getElementById("darkenerDiv").style.display = "none";
+                    object.getInterfaceReference().appendChild(task.getDisplayReference());
+                }
             };
         }
         static createGrid(){
@@ -805,14 +818,22 @@ let Gant = (function () {
 
             let taskName = formData.getElementsByClassName("taskName")[0];
             let type = formData.getElementsByClassName("typeSelector")[0];
-            let beginDate = formData.getElementsByClassName("beginDate")[0];
-            let endDate = formData.getElementsByClassName("endDate")[0];
+            let beginDateString = formData.getElementsByClassName("beginDate")[0];
+            let endDateString = formData.getElementsByClassName("endDate")[0];
+            if(beginDateString === "" || endDateString === "")
+                return;
+
+            let beginDate = DateUtilities.parseDate(beginDateString.value);
+            let endDate = DateUtilities.parseDate(endDateString.value);
+
+            if(DateUtilities.leastDate(beginDate, endDate) === endDate)
+                return;
 
             let task = new Task(
                 taskName.value,
                 null,
-                DateUtilities.parseDate(beginDate.value),
-                DateUtilities.parseDate(endDate.value),
+                beginDate,
+                endDate,
                 taskType.nameOf(type.options[type.selectedIndex].value),
                 "task#" + this.getTaskCounter(),
                 this
