@@ -486,6 +486,8 @@ const Task = (function(){
             contenedor.draggable = "true";
             contenedor.WebkitTransitionDuration = "1s";
 
+            contenedor.appendChild(object.createDeleteButton());
+
             contenedor.appendChild(this.createHideButton());
 
             contenedor.ondragstart = function (ev) {
@@ -607,6 +609,34 @@ const Task = (function(){
               }
             });
             return newX;
+        }
+
+        createDeleteButton(){
+          let newX = createElementComplete("div", "", "", '×');
+          newX.style.fontSize = "40px";
+          newX.style.color = "black";
+          newX.style.cssFloat = "right";
+          newX.style.cursor = "pointer";
+          newX.style.position = "";
+          newX.style.marginTop = "-10px";
+
+          let object = this;
+
+          newX.addEventListener("click", function(){
+            object.removeChildren();
+            object.getDisplayReference().parentNode.removeChild(object.getDisplayReference());
+          });
+
+          return newX;
+        }
+
+        removeChildren(){
+          if(this.getChildrenTasks() != []){
+            this.getChildrenTasks().forEach(function(item){
+              item.removeChildren();
+              item.getDisplayReference().parentNode.removeChild(item.getDisplayReference());
+            });
+          }
         }
 
         //Obtiene todos los atributos de una tarea y los pone en una cadena
