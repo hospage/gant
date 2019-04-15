@@ -107,6 +107,10 @@ Atributos:
       _name = nombre de la tarea (String)
       _type = tipo de tarea (Definido según el Enum taskType) [taskType.CONTAINER, taskType.MILESTONE, taskType.TASK]
       _progress = Flotante que define el progreso de la tarea. (0-1) [valor de 0.0 al crearse la tarea]
+      _childrenTasks = un arreglo de tareas que contiene las tareas hijo dado un padre
+      _displayReference = referencia del objeto hacia el documento HTML
+      _idString = id de la tarea
+      _gant = gant al que pertenece la tarea
 */
 const Task = (function(){
     const _parent = new WeakMap();
@@ -119,7 +123,6 @@ const Task = (function(){
     const _displayReference = new WeakMap();
     const _idString = new WeakMap();
     const _gant = new WeakMap();
-
     class Task {
         constructor(name, parent, beginDate, endDate,  type, idString, gant){
             this.setParent(parent);
