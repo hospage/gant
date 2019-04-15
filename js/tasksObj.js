@@ -188,9 +188,34 @@ const Task = (function(){
         getChildrenTasks(){ 
             return _childrenTasks.get(this);
         }
-        //Agrega una tarea al arreglo de tareas hijo
+
+        isDescendant(task){
+            let parentTask = this.getParent();
+            if(parentTask === null)
+                return false;
+            else if (parentTask === task)
+                return true;
+            else
+                parentTask.isDescendant(task);
+        }
+
         pushTaskToChildrenTasks(newTask){
+            if (this.getChildrenTasks().length === 0)
+                this.setType(taskType.CONTAINER);
+
+            let childrenArr = this.getChildrenTasks();
+            for (let i = 0 ; i < childrenArr.length ; i++){
+                if(childrenArr[i] === newTask)
+                    return;
+            }
             this.getChildrenTasks().push(newTask);
+            if(newTask.getParent() != null)
+                newTask.getParent().popTaskFromChildrenTasks(newTask);
+            newTask.setParent(this);
+        }
+
+        popTaskFromChildrenTasksIndex(index){
+            this.getChildrenTasks().splice(index, 1);
         }
         //Encapsula la referencia del objeto
         setDisplayReference(newDisplayReference){
@@ -216,7 +241,20 @@ const Task = (function(){
         getGant(){
             return _gant.get(this);
         }
-        //Obtiene
+
+        popTaskFromChildrenTasks(task){
+            this.popTaskFromChildrenTasksIndex(this.getChildTaskIndex(task));
+        }
+
+        getChildTaskIndex(task){
+            let arr = this.getChildrenTasks();
+            for (let i = 0 ; i < arr.length ; i++){
+                if(arr[i] === task)
+                    return i;
+            }
+            return arr.length;
+        }
+
         getParentChildren(){
             if (this.getParent() !== null)
                 return this.getParent().getChildrenTasks();
@@ -250,16 +288,16 @@ const Task = (function(){
         }
         //Calcula el progreso total de una tarea, tomando en cuenta si es contenedor o tarea
         calculateProgress(){
-            if(this.getType() == taskType.CONTAINER){
+            if(this.getType() === taskType.CONTAINER){
                 let arr = this.getChildrenTasks();
                 let progreso_total = 0.0000;
                 let dias_totales = this.getRemainingTime();
                 arr.forEach(function(item){
                     progreso_total += (item.getRemainingTime()/dias_totales)*item.calculateProgress(); 
-                })
+                });
                 return progreso_total;
             }
-            else if(this.getType() == taskType.TASK){
+            else if(this.getType() === taskType.TASK){
                 return this.getProgress();
             }
             else{
@@ -333,8 +371,14 @@ const Task = (function(){
         createLoadBar(){
             let loadBar = createElementComplete('div', '', 'loadBar', '');
             let loaded = createElementComplete('div', '', 'loaded', "\xa0");
-            let object = this;
+            this.setLoadBarListeners(loadBar);
+            loaded.style.width = "0%";
+            loadBar.appendChild(loaded);
+            return loadBar;
+        }
 
+        setLoadBarListeners(loadBar){
+            let object = this;
             loadBar.onclick = function(ev){
                 if(object.getType() === taskType.TASK) {
                     ev.stopPropagation();
@@ -355,10 +399,6 @@ const Task = (function(){
                     console.log(object.getProgress());
                 }
             };
-
-            loaded.style.width = "0%";
-            loadBar.appendChild(loaded);
-            return loadBar;
         }
 
         arrangeDisplayItems(container){
@@ -419,9 +459,8 @@ const Task = (function(){
         dropTask(event){
             event.preventDefault();
             let originTask = this.getGant().getTaskFromIdString(event.dataTransfer.getData("text/idString"));
-            if(originTask !== this) {
-                console.log("Origen: " + originTask + "\nDestino: " + this);
-                originTask.updateSelfPosition();
+            if(originTask !== this && !this.isDescendant(originTask)) {
+                this.pushTaskToChildrenTasks(originTask);
             }
             
         }
@@ -433,7 +472,7 @@ const Task = (function(){
         }
         //Obtiene todos los atributos de una tarea y los pone en una cadena
         toString(){
-            return "Name: " + this.getName() + "\nParent: " + String(this.getParent()) + "\nBegin Date: " + String(this.getBeginDate())
+            return "Name: " + this.getName() + "\nParent: " + this.getParent().getIdString() + "\nBegin Date: " + String(this.getBeginDate())
             + "\nEnd Date: " + String(this.getEndDate()) + "\nTask type: " + String(this.getType()) + "\nProgress: " +
             String(this.getProgress()) + "%\n\n";
         }
@@ -491,10 +530,6 @@ let Gant = (function () {
 
         pushTaskToTaskList(newTask){
             this.getTaskList().push(newTask);
-        }
-
-        popTaskFromTaskList(index){
-            this.getTaskList().splice(index, 1);
         }
 
         getTaskCounter(){
