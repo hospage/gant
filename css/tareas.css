@@ -46,3 +46,20 @@ div#tres.loaded{
 div#cuatro.loaded{
   width: 90%;
 }
+
+input[type="button"].addTask{
+  background-color: white;
+  border: none;
+  color: #dd4949;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  font-size: 16px;
+  margin: 8px 0px 0px 290px;
+  transition-duration: 0.5s;
+}
+
+input[type="button"].addTask:hover{
+    color: white;
+    background-color: #dd4949;
+}

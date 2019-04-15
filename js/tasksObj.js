@@ -594,16 +594,17 @@ const Task = (function(){
 
             newX.addEventListener("click", function(){
               if(this.className === "show"){
-                this.parentNode.childNodes[1].childNodes[1].style.opacity = "0";
-                this.parentNode.childNodes[1].childNodes[1].style.visibility = "hidden";
+                console.log(this);
+                this.parentNode.childNodes[2].childNodes[1].style.opacity = "0";
+                this.parentNode.childNodes[2].childNodes[1].style.visibility = "hidden";
                 this.className = "hidden";
                 this.parentNode.style.maxHeight = "30px";
                 object.hideChildren();
               }
               else{
                 this.className = "show";
-                this.parentNode.childNodes[1].childNodes[1].style.opacity = "1";
-                this.parentNode.childNodes[1].childNodes[1].style.visibility = "visible";
+                this.parentNode.childNodes[2].childNodes[1].style.opacity = "1";
+                this.parentNode.childNodes[2].childNodes[1].style.visibility = "visible";
                 this.parentNode.style.maxHeight = "100px";
                 object.displayChildren();
               }
@@ -727,6 +728,7 @@ let Gant = (function () {
         createForm(){
             let newForm = createElementComplete('form', 'taskForm', '', '');
             let submit = Gant.createBtn("Agregar Tarea");
+            submit.className = "addTask";
             this.assignSubmitOnClick(submit);
 
             newForm.appendChild(Gant.createCloseX());
