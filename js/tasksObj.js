@@ -253,7 +253,12 @@ const Task = (function(){
         }
 
         popTaskFromChildrenTasksIndex(index) {
+            this.getChildrenTasks()[index].setParent(null);
             this.getChildrenTasks().splice(index, 1);
+            if(this.getChildrenTasks().length === 0)
+                this.setType(taskType.TASK);
+            this.updateParentProgress();
+            this.updateDate();
         }
 
         //Encapsula la referencia del objeto
@@ -655,20 +660,22 @@ const Task = (function(){
           let object = this;
 
           newX.addEventListener("click", function(){
-            object.removeChildren();
+            object.removeSelf();
             object.getDisplayReference().parentNode.removeChild(object.getDisplayReference());
-          });
 
+          });
           return newX;
         }
 
-        removeChildren(){
+        removeSelf(){
           if(this.getChildrenTasks().length !== 0){
             this.getChildrenTasks().forEach(function(item){
-              item.removeChildren();
+              item.removeSelf();
               item.getDisplayReference().parentNode.removeChild(item.getDisplayReference());
             });
           }
+          if(this.getParent() !== null)
+              this.getParent().popTaskFromChildrenTasks(this);
         }
 
         //Obtiene todos los atributos de una tarea y los pone en una cadena
