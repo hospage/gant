@@ -136,87 +136,87 @@ const Task = (function(){
             this.setIdString(idString);
             _childrenTasks.set(this, []);
         }
-
+        //Obtiene la tarea padre de un hijo
         getParent(){
             return _parent.get(this);
         }
-
+        //Define el padre de una tarea
         setParent(newParent){
             _parent.set(this, newParent)
         }
-
+        //Obtiene la fecha de inicio de una tarea
         getBeginDate(){
             return _beginDate.get(this);
         }
-
+        //Define la fecha de inicio de una tarea
         setBeginDate(newDate){
             _beginDate.set(this, newDate);
         }
-
+        //Obtiene la fecha final de una tarea
         getEndDate(){
             return _endDate.get(this);
         }
-
+        //Encapsula la fecha final de una tarea
         setEndDate(newDate){
             _endDate.set(this, newDate);
         }
-
+        //Obtiene el nombre de una tarea
         getName(){
             return _name.get(this);
         }
-
+        //Encapsula el nombre de una tarea
         setName(newName){
             _name.set(this, newName);
         }
-
+        //Obtiene el tipo de un objeto tarea (contenedor, hito, tarea)
         getType(){
             return _type.get(this);
         }
-
+        //Encapsula el tipo de un objeto tarea 
         setType(newType){
             _type.set(this, newType);
         }
-
+        //Obtiene el progreso de una tarea
         getProgress(){
             return _progress.get(this);
         }
-
+        //Encapsula el progreso de una tarea
         setProgress(progress){
             _progress.set(this, progress);
         }
-
-        getChildrenTasks(){
+        //Obtiene el arreglo de tareas que son hijos 
+        getChildrenTasks(){ 
             return _childrenTasks.get(this);
         }
-
+        //Agrega una tarea al arreglo de tareas hijo
         pushTaskToChildrenTasks(newTask){
             this.getChildrenTasks().push(newTask);
         }
-
+        //Encapsula la referencia del objeto
         setDisplayReference(newDisplayReference){
             _displayReference.set(this, newDisplayReference);
         }
-
+        //Obtiene la referencia de un objeto del tipo tarea
         getDisplayReference(){
             return _displayReference.get(this);
         }
-
+        //Encapsula el id de una tarea
         setIdString(newString){
             _idString.set(this, newString);
         }
-
+        //Obtiene el id de una tarea
         getIdString(){
             return _idString.get(this);
         }
-
+        //Encapsula el GANT al que pertenece
         setGant(newGant){
             _gant.set(this, newGant);
         }
-
+        //Obtiene el GANT al que pertenece
         getGant(){
             return _gant.get(this);
         }
-
+        //Obtiene
         getParentChildren(){
             if (this.getParent() !== null)
                 return this.getParent().getChildrenTasks();
@@ -248,7 +248,7 @@ const Task = (function(){
 
             return 1 + date2 - date1 - Math.floor((date2 - date1) / 7) * 2;
         }
-
+        //Calcula el progreso total de una tarea, tomando en cuenta si es contenedor o tarea
         calculateProgress(){
             if(this.getType() == taskType.CONTAINER){
                 let arr = this.getChildrenTasks();
@@ -421,9 +421,17 @@ const Task = (function(){
             let originTask = this.getGant().getTaskFromIdString(event.dataTransfer.getData("text/idString"));
             if(originTask !== this) {
                 console.log("Origen: " + originTask + "\nDestino: " + this);
+                originTask.updateSelfPosition();
+            }
+            
+        }
+        updateSelfPosition(){
+            if(this.getParent() != null){
+                let posicion_padre = parseInt(this.getParent().style.marginLeft);
+                this.style.marginLeft = 15 + posicion_padre + "px";
             }
         }
-
+        //Obtiene todos los atributos de una tarea y los pone en una cadena
         toString(){
             return "Name: " + this.getName() + "\nParent: " + String(this.getParent()) + "\nBegin Date: " + String(this.getBeginDate())
             + "\nEnd Date: " + String(this.getEndDate()) + "\nTask type: " + String(this.getType()) + "\nProgress: " +
@@ -535,8 +543,6 @@ let Gant = (function () {
                 object.getInterfaceReference().appendChild(task.getDisplayReference());
             };
         }
-
-
         static createGrid(){
             let izquierdas = [
                 document.createTextNode("Nombre: "),
