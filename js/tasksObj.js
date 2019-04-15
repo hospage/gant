@@ -501,12 +501,19 @@ const Task = (function(){
             let arr = this.getChildrenTasks();
             if (arr.length !== 0){
                 arr.forEach(function(item){
-                   item.hideChildren();
-                   item.getDisplayReference().style.display = "none";
+                   item.hideTask();
                 });
             }
-            else
-                this.getDisplayReference().style.display = "none";
+        }
+
+        hideTask(){
+            let arr = this.getChildrenTasks();
+            if (arr.length !== 0){
+                arr.forEach(function(item){
+                    item.hideTask();
+                });
+            }
+            this.getDisplayReference().style.display = "none";
         }
 
         displayChildren(){
