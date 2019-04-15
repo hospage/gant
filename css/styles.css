@@ -53,3 +53,20 @@ div.contenedorMaestro{
 div.grouper{
   display: inline-block;
 }
+
+
+.hidden{
+    transform: rotate(-90deg);
+}
+
+
+.shown{
+    transform: rotate(90deg);
+}
+
+.contenedor{
+  max-height: 130px;
+  -webkit-transition: max-height 0.8s;
+	-moz-transition: max-height 0.8s;
+	transition: max-height 1.2s;
+}

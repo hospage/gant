@@ -293,7 +293,7 @@ const Task = (function(){
                     "150px"
                     ],
                 [
-                    createElementComplete('div', '', classTags, 'Agregar Avance: '),
+                    createElementComplete('div', '', classTags, ''),
                     createElementComplete('div', '', classValues, ''),
                     "150px"
                 ]
@@ -304,6 +304,8 @@ const Task = (function(){
             });
 
             itemsArray[3][1].appendChild(this.createLoadBar());
+            itemsArray[4][1].style.padding = '20px 0px 0px 0px';
+            itemsArray[4][1].style.position = 'absolute';
 
             return itemsArray;
         }
@@ -343,12 +345,34 @@ const Task = (function(){
             let itemsArray = this.createTaskDivs('tagName', 'tagValue');
             let top1 = itemsArray.length/2;
 
-            for(let i = 0; i < top1; i++){
-                let m = document.createElement('div');
+
+            let o = createElementComplete('div', '', 'register', '');
+            let pl = createElementComplete('div', '', 'grouper', '');
+            let pr = createElementComplete('div', '', 'grouper', '');
+            pl.style.width = "250px";
+            pr.style.width = "600px";
+
+            pl.appendChild(itemsArray[0][0]);
+            pl.appendChild(itemsArray[0][1]);
+            pr.appendChild(itemsArray[top1][0]);
+            pr.appendChild(itemsArray[top1][1]);
+
+            o.appendChild(pl);
+            o.appendChild(pr);
+
+            container.appendChild(o);
+
+            let parameters = createElementComplete('div', '', '', '');
+            parameters.style.transition = "1.3s";
+            parameters.style.opacity = "1";
+
+            for(let i = 1; i < top1; i++){
+                let m = createElementComplete('div', '', 'register', '');
                 let kl = createElementComplete('div', '', 'grouper', '');
                 let kr = createElementComplete('div', '', 'grouper', '');
                 kl.style.width = "250px";
                 kr.style.width = "600px";
+
 
                 let k1 = itemsArray[i][0];
                 let k2 = itemsArray[i][1];
@@ -362,14 +386,21 @@ const Task = (function(){
                 m.appendChild(kl);
                 m.appendChild(kr);
 
-                container.appendChild(m);
+                parameters.appendChild(m);
             }
+
+            container.appendChild(parameters);
         }
 
         createDisplay(){
             let contenedor = createElementComplete('div', '', 'contenedor', '');
             let object = this;
+            let box = document.createElement('div');
+            box.style.marginLeft = "30px";
             contenedor.draggable = "true";
+            contenedor.WebkitTransitionDuration = "1s";
+
+            contenedor.appendChild(this.createHideButton());
 
             contenedor.ondragstart = function(ev){
                 object.dragTask(ev);
@@ -383,7 +414,8 @@ const Task = (function(){
                 object.dropTask(ev);
             };
 
-            this.arrangeDisplayItems(contenedor);
+            this.arrangeDisplayItems(box);
+            contenedor.appendChild(box);
 
             return contenedor;
 
@@ -406,6 +438,50 @@ const Task = (function(){
             return "Name: " + this.getName() + "\nParent: " + String(this.getParent()) + "\nBegin Date: " + String(this.getBeginDate())
             + "\nEnd Date: " + String(this.getEndDate()) + "\nTask type: " + String(this.getType()) + "\nProgress: " +
             String(this.getProgress()) + "%\n\n";
+        }
+
+        createHideButton(){
+            let newX = createElementComplete("div", "hide", "show", 'V');
+            newX.style.fontSize = "30px";
+            newX.style.color = "black";
+            newX.style.display = "block";
+            newX.style.cssFloat = "left";
+            newX.style.cursor = "pointer";
+            newX.style.position = "fixed";
+            newX.style.height = newX.style.lineHeight = "20px";
+            newX.style.WebkitTransitionDuration = "1s";
+
+            let object = this;
+
+            newX.addEventListener("click", function(){
+              if(this.className == "show"){
+                this.parentNode.childNodes[1].childNodes[1].style.opacity = "0";
+                this.parentNode.childNodes[1].childNodes[1].style.visibility = "hidden";
+                this.className = "hidden";
+                this.parentNode.style.maxHeight = "30px";
+                object.getChildrenTasks().forEach(function(item, index){
+                  item.getDisplayReference().style.visibility = "hidden";
+                  item.forEach(function(i){
+                    i._displayReference().style.visibility = "hidden";
+                  });
+                });
+              }
+              else{
+                this.className = "show";
+                this.parentNode.childNodes[1].childNodes[1].style.opacity = "1";
+                this.parentNode.childNodes[1].childNodes[1].style.visibility = "visible";
+                this.parentNode.style.maxHeight = "100px";
+                object.getChildrenTasks().forEach(function(item, index){
+                  item.getDisplayReference().style.visibility = "visible";
+                  item.forEach(function(i){
+                    i._displayReference().style.visibility = "visible";
+                  });
+                });
+              }
+
+
+            });
+            return newX;
         }
 
     }
