@@ -80,16 +80,8 @@ let User = (function(){
             return _name.get(this);
         }
 
-        setName(newName){
-            _name.set(this, newName);
-        }
-
         getRole(){
             return _role.get(this);
-        }
-
-        setRole(role){
-            _role.set(this, role);
         }
     }
 
@@ -252,6 +244,7 @@ const Task = (function(){
             this.updateDate();
             if (parent != null) {
                 parent.popTaskFromChildrenTasks(newTask);
+                parent.updateDate();
                 if(parent.getChildrenTasks().length === 0)
                     parent.setType(taskType.TASK);
             }
@@ -306,11 +299,6 @@ const Task = (function(){
             return arr.length;
         }
 
-        getParentChildren() {
-            if (this.getParent() !== null)
-                return this.getParent().getChildrenTasks();
-        }
-
         /*
             31-Marzo-2019
             Obtiene el número de dias entre _beginDate y _endDate
@@ -354,7 +342,7 @@ const Task = (function(){
                 arr.forEach(function (item) {
                     if(DateUtilities.leastDate(beginDate, item.getBeginDate()) === item.getBeginDate())
                         beginDate = item.getBeginDate();
-                    if(DateUtilities.leastDate(endDate, item.getEndDate()) === item.getEndDate())
+                    if(DateUtilities.leastDate(endDate, item.getEndDate()) === endDate)
                         endDate = item.getEndDate();
                 });
                 this.setBeginDate(beginDate);
@@ -370,7 +358,10 @@ const Task = (function(){
             if (this.getType() === taskType.CONTAINER) {
                 let arr = this.getChildrenTasks();
                 let progreso_total = 0.0000;
-                let dias_totales = this.getRemainingTime();
+                let dias_totales = 0;
+                arr.forEach(function (item) {
+                    dias_totales += item.getRemainingTime();
+                });
                 arr.forEach(function (item) {
                     progreso_total += (item.getRemainingTime() / dias_totales) * item.updateProgress();
                 });
@@ -390,18 +381,6 @@ const Task = (function(){
             else{
                 this.updateProgress();
             }
-        }
-
-        addTask(newTask) {
-
-        }
-
-        deleteTask(taskRef) {
-
-        }
-
-        addUser(newUser) {
-
         }
 
         createTaskDivs(classTags, classValues) {
@@ -684,7 +663,7 @@ const Task = (function(){
         }
 
         removeChildren(){
-          if(this.getChildrenTasks() != []){
+          if(this.getChildrenTasks().length !== 0){
             this.getChildrenTasks().forEach(function(item){
               item.removeChildren();
               item.getDisplayReference().parentNode.removeChild(item.getDisplayReference());
@@ -735,10 +714,6 @@ let Gant = (function () {
 
         getTaskList(){
             return _taskList.get(this);
-        }
-
-        getTaskFromTaskList(index){
-            return this.getTaskList()[index];
         }
 
         getTaskFromIdString(idString){
