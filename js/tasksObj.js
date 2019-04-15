@@ -123,18 +123,20 @@ const Task = (function(){
     const _displayReference = new WeakMap();
     const _idString = new WeakMap();
     const _gant = new WeakMap();
+    const _progressBar = new WeakMap();
     class Task {
         constructor(name, parent, beginDate, endDate, type, idString, gant) {
             this.setParent(parent);
             this.setType(type);
             this.setName(name);
-            this.setBeginDate(beginDate);
-            this.setEndDate(endDate);
-            this.setProgress(0.0);
+            _beginDate.set(this, beginDate);
+            _endDate.set(this, endDate);
             this.setDisplayReference(this.createDisplay());
             this.setGant(gant);
             this.setIdString(idString);
             _childrenTasks.set(this, []);
+
+            this.setProgress(0.0);
         }
 
         //Obtiene la tarea padre de un hijo
@@ -155,16 +157,27 @@ const Task = (function(){
         //Define la fecha de inicio de una tarea
         setBeginDate(newDate) {
             _beginDate.set(this, newDate);
+            this.getDisplayReference()
+                .getElementsByClassName("register")[1]
+                .getElementsByClassName("grouper")[0]
+                .getElementsByClassName("tagValue")[0]
+                .innerHTML = DateUtilities.dateToString(this.getBeginDate());
         }
 
         //Obtiene la fecha final de una tarea
         getEndDate() {
             return _endDate.get(this);
+
         }
 
         //Encapsula la fecha final de una tarea
         setEndDate(newDate) {
             _endDate.set(this, newDate);
+            this.getDisplayReference()
+                .getElementsByClassName("register")[2]
+                .getElementsByClassName("grouper")[0]
+                .getElementsByClassName("tagValue")[0]
+                .innerHTML = DateUtilities.dateToString(this.getEndDate());
         }
 
         //Obtiene el nombre de una tarea
@@ -195,6 +208,19 @@ const Task = (function(){
         //Encapsula el progreso de una tarea
         setProgress(progress) {
             _progress.set(this, progress);
+            this.updateProgressBarWidth(progress);
+        }
+
+        getProgressBar(){
+            return _progressBar.get(this);
+        }
+
+        setProgressBar(newProgressRef){
+            _progressBar.set(this, newProgressRef);
+        }
+
+        updateProgressBarWidth(progressFloat){
+            this.getProgressBar().style.width = (progressFloat * 100) + "%";
         }
 
         //Obtiene el arreglo de tareas que son hijos
@@ -223,12 +249,14 @@ const Task = (function(){
                     return;
             }
             this.getChildrenTasks().push(newTask);
+            this.updateDate();
             if (parent != null) {
                 parent.popTaskFromChildrenTasks(newTask);
                 if(parent.getChildrenTasks().length === 0)
                     parent.setType(taskType.TASK);
             }
             newTask.setParent(this);
+            newTask.updateParentProgress();
         }
 
         popTaskFromChildrenTasksIndex(index) {
@@ -308,6 +336,33 @@ const Task = (function(){
                     date2;
 
             return 1 + date2 - date1 - Math.floor((date2 - date1) / 7) * 2;
+        }
+
+        setRemainingDays(newInt){
+            this.getDisplayReference()
+                .getElementsByClassName("register")[1]
+                .getElementsByClassName("grouper")[1]
+                .getElementsByClassName("tagValue")[0]
+                .innerHTML = newInt + " día(s)";
+        }
+
+        updateDate(){
+            let arr = this.getChildrenTasks();
+            if(arr.length !== 0) {
+                let beginDate = arr[0].getBeginDate();
+                let endDate = arr[0].getEndDate();
+                arr.forEach(function (item) {
+                    if(DateUtilities.leastDate(beginDate, item.getBeginDate()) === item.getBeginDate())
+                        beginDate = item.getBeginDate();
+                    if(DateUtilities.leastDate(endDate, item.getEndDate()) === item.getEndDate())
+                        endDate = item.getEndDate();
+                });
+                this.setBeginDate(beginDate);
+                this.setEndDate(endDate);
+                this.setRemainingDays(this.getRemainingTime());
+            }
+            if(this.getParent() !== null)
+                this.getParent().updateDate();
         }
 
         //Calcula el progreso total de una tarea, tomando en cuenta si es contenedor o tarea
@@ -399,6 +454,7 @@ const Task = (function(){
             let loaded = createElementComplete('div', '', 'loaded', "\xa0");
             this.setLoadBarListeners(loadBar);
             loaded.style.width = "0%";
+            this.setProgressBar(loaded);
             loadBar.appendChild(loaded);
             return loadBar;
         }
@@ -418,12 +474,8 @@ const Task = (function(){
                     else if (progressFloat > 0.98)
                         progressFloat = 1;
 
-                    console.log(xEnd - parseFloat(xPos));
-
-                    this.childNodes[0].style.width = (progressFloat * 100) + "%";
                     object.setProgress(progressFloat);
                     object.updateParentProgress();
-                    console.log(object.getProgress());
                 }
             };
         }
