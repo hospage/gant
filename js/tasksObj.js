@@ -69,7 +69,6 @@ let User = (function(){
     let _name = new WeakMap(); //String
     let _role = new WeakMap(); //Usar Enum roleName para el atributo _role
 
-
     class User {
         constructor(name, role) {
             _name.set(this, name);
@@ -118,15 +117,15 @@ const Task = (function(){
     const _progressBar = new WeakMap();
     class Task {
         constructor(name, parent, beginDate, endDate, type, idString, gant) {
+            _childrenTasks.set(this, []);
+            _beginDate.set(this, beginDate);
+            _endDate.set(this, endDate);
             this.setParent(parent);
             this.setType(type);
             this.setName(name);
-            _beginDate.set(this, beginDate);
-            _endDate.set(this, endDate);
             this.setDisplayReference(this.createDisplay());
             this.setGant(gant);
             this.setIdString(idString);
-            _childrenTasks.set(this, []);
 
             this.setProgress(0.0);
         }
@@ -231,33 +230,35 @@ const Task = (function(){
         }
 
         pushTaskToChildrenTasks(newTask) {
-            if (this.getChildrenTasks().length === 0)
-                this.setType(taskType.CONTAINER);
-
             let childrenArr = this.getChildrenTasks();
             let parent = newTask.getParent();
+
+            if (childrenArr.length === 0)
+                this.setType(taskType.CONTAINER);
+
             for (let i = 0; i < childrenArr.length; i++) {
                 if (childrenArr[i] === newTask)
                     return;
             }
+
             this.getChildrenTasks().push(newTask);
             this.updateDate();
-            if (parent != null) {
+            this.updateProgress();
+
+            if (parent != null)
                 parent.popTaskFromChildrenTasks(newTask);
-                parent.updateDate();
-                if(parent.getChildrenTasks().length === 0)
-                    parent.setType(taskType.TASK);
-            }
             newTask.setParent(this);
-            newTask.updateParentProgress();
         }
 
         popTaskFromChildrenTasksIndex(index) {
-            this.getChildrenTasks()[index].setParent(null);
-            this.getChildrenTasks().splice(index, 1);
-            if(this.getChildrenTasks().length === 0)
+            let childrenArr = this.getChildrenTasks();
+
+            childrenArr[index].setParent(null);
+            childrenArr.splice(index, 1);
+            if(childrenArr.length === 0)
                 this.setType(taskType.TASK);
-            this.updateParentProgress();
+
+            this.updateProgress();
             this.updateDate();
         }
 
@@ -359,7 +360,7 @@ const Task = (function(){
         }
 
         //Calcula el progreso total de una tarea, tomando en cuenta si es contenedor o tarea
-        updateProgress() {
+        RecursiveUpdateProgress() {
             if (this.getType() === taskType.CONTAINER) {
                 let arr = this.getChildrenTasks();
                 let progreso_total = 0.0000;
@@ -368,7 +369,7 @@ const Task = (function(){
                     dias_totales += item.getRemainingTime();
                 });
                 arr.forEach(function (item) {
-                    progreso_total += (item.getRemainingTime() / dias_totales) * item.updateProgress();
+                    progreso_total += (item.getRemainingTime() / dias_totales) * item.RecursiveUpdateProgress();
                 });
                 this.setProgress(progreso_total);
                 return progreso_total;
@@ -379,12 +380,12 @@ const Task = (function(){
             }
         }
 
-        updateParentProgress(){
+        updateProgress(){
             if(this.getParent() != null){
-                this.getParent().updateParentProgress();
+                this.getParent().updateProgress();
             }
             else{
-                this.updateProgress();
+                this.RecursiveUpdateProgress();
             }
         }
 
@@ -459,12 +460,27 @@ const Task = (function(){
                         progressFloat = 1;
 
                     object.setProgress(progressFloat);
-                    object.updateParentProgress();
+                    object.updateProgress();
                 }
             };
         }
 
-        arrangeDisplayItems(container) {
+        setDragListeners(container){
+            let object = this;
+            container.ondragstart = function (ev) {
+                object.dragTask(ev);
+            };
+
+            container.ondragover = function (ev) {
+                ev.preventDefault();
+            };
+
+            container.ondrop = function (ev) {
+                object.dropTask(ev);
+            };
+        }
+
+        appendDisplayItems(container) {
             let itemsArray = this.createTaskDivs('tagName', 'tagValue');
             let top1 = itemsArray.length / 2;
 
@@ -514,34 +530,25 @@ const Task = (function(){
         }
 
         createDisplay() {
-            let contenedor = createElementComplete('div', '', 'contenedor', '');
-            let object = this;
+            let contenedor = this.createContainer();
             let box = document.createElement('div');
             box.style.marginLeft = "30px";
-            contenedor.draggable = "true";
-            contenedor.WebkitTransitionDuration = "1s";
+            this.appendDisplayItems(box);
 
-            contenedor.appendChild(object.createDeleteButton());
-
-            contenedor.appendChild(this.createHideButton());
-
-            contenedor.ondragstart = function (ev) {
-                object.dragTask(ev);
-            };
-
-            contenedor.ondragover = function (ev) {
-                ev.preventDefault();
-            };
-
-            contenedor.ondrop = function (ev) {
-                object.dropTask(ev);
-            };
-
-            this.arrangeDisplayItems(box);
             contenedor.appendChild(box);
 
             return contenedor;
+        }
 
+        createContainer(){
+            let container = createElementComplete('div', '', 'contenedor', '');
+            container.draggable = true;
+
+            container.appendChild(this.createDeleteButton());
+            container.appendChild(this.createHideButton());
+
+            this.setDragListeners(container);
+            return container;
         }
 
         hideChildren(){
@@ -611,36 +618,75 @@ const Task = (function(){
                     item.updateTask();
                 });
             }
-            this.updateParentProgress();
+            this.updateProgress();
         }
 
         createHideButton(){
-            let newX = createElementComplete("div", "hide", "show", 'V');
+            let newX = createElementComplete("div", "", "showBtn", 'V');
+            Task.stylizeHideButton(newX);
+            this.setHideButtonListener(newX);
+            return newX;
+        }
+
+        setHideButtonListener(hideBtn){
+            let object = this;
+            hideBtn.addEventListener("click", function(){
             let hideTextTransition = "all 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) 0s";
             let showTextTransition = "all 0.5s cubic-bezier(0.6, -0.28, 0.74, 0.05) 0s";
-            Task.stylizeHideButton(newX);
+            let data = hideBtn.parentNode.childNodes[2].childNodes[1];
+            data.style.transition = hideTextTransition;
 
-            let object = this;
-            newX.addEventListener("click", function(){
-                let data = this.parentNode.childNodes[2].childNodes[1];
-                if(this.className === "show"){
-                    data.style.opacity = "0";
-                    data.style.visibility = "hidden";
-                    this.className = "hidden";
-                    this.parentNode.style.maxHeight = "30px";
-                    data.style.transition = hideTextTransition;
-                    object.hideChildren();
-                }
-                else{
-                    data.style.opacity = "1";
-                    data.style.visibility = "visible";
-                    this.className = "show";
-                    this.parentNode.style.maxHeight = "100px";
-                    data.style.transition = showTextTransition;
-                    object.displayChildren();
-                }
+            if(this.className === "showBtn")
+                object.toggleTextVisibility(
+                    data,
+                    this,
+                    "0",
+                    "hidden",
+                    "rotate(-90deg)",
+                    "hideBtn",
+                    "30px",
+                    hideTextTransition,
+                    true
+                );
+            else
+                object.toggleTextVisibility(
+                    data,
+                    this,
+                    "1",
+                    "visible",
+                    null,
+                    "showBtn",
+                    "100px",
+                    showTextTransition,
+                    false
+                );
             });
-            return newX;
+        }
+
+        toggleTextVisibility(data, hideBtn, opacity, visibility, transform, className, maxHeight, transition, hide){
+            data.style.transition = transition;
+            data.style.opacity = opacity;
+            data.style.visibility = visibility;
+
+            hideBtn.style.transform = transform;
+            hideBtn.className = className;
+            hideBtn.parentNode.style.maxHeight = maxHeight;
+
+            if (hide)
+                this.hideChildren();
+            else
+                this.displayChildren();
+        }
+
+        removeSelf(){
+            if(this.getChildrenTasks().length !== 0){
+                this.getChildrenTasks().forEach(function(item){
+                    item.removeSelf();
+                    item.getDisplayReference().parentNode.removeChild(item.getDisplayReference());
+                });
+            }
+            if(this.getParent() !== null)
+                this.getParent().popTaskFromChildrenTasks(this);
         }
 
         createDeleteButton(){
@@ -673,17 +719,6 @@ const Task = (function(){
             btn.style.cursor = "pointer";
             btn.style.position = "";
             btn.style.marginTop = "-10px";
-        }
-
-        removeSelf(){
-          if(this.getChildrenTasks().length !== 0){
-            this.getChildrenTasks().forEach(function(item){
-              item.removeSelf();
-              item.getDisplayReference().parentNode.removeChild(item.getDisplayReference());
-            });
-          }
-          if(this.getParent() !== null)
-              this.getParent().popTaskFromChildrenTasks(this);
         }
 
         //Obtiene todos los atributos de una tarea y los pone en una cadena

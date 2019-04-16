@@ -43,7 +43,7 @@ div.tagValue{
 }
 
 div.contenedorMaestro{
-  width:90%;
+  width: 90%;
   color: #333333;
   border: 1px solid #333333;
   padding: 10px 30px 10px 30px;
@@ -52,21 +52,4 @@ div.contenedorMaestro{
 
 div.grouper{
   display: inline-block;
-}
-
-
-.hidden{
-    transform: rotate(-90deg);
-}
-
-
-.shown{
-    transform: rotate(90deg);
-}
-
-.contenedor{
-  max-height: 130px;
-  -webkit-transition: 0.5s ease-in-out;
-  -moz-transition: 0.5s ease-in-out;
-  transition: 0.5s ease-in-out;
 }
