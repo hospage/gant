@@ -485,7 +485,6 @@ const Task = (function(){
             container.appendChild(o);
 
             let parameters = createElementComplete('div', '', '', '');
-            parameters.style.transition = "1.3s";
             parameters.style.opacity = "1";
 
             for (let i = 1; i < top1; i++) {
@@ -617,54 +616,63 @@ const Task = (function(){
 
         createHideButton(){
             let newX = createElementComplete("div", "hide", "show", 'V');
-            newX.style.fontSize = "30px";
-            newX.style.color = "black";
-            newX.style.display = "block";
-            newX.style.cssFloat = "left";
-            newX.style.cursor = "pointer";
-            newX.style.position = "absolute";
-            newX.style.height = newX.style.lineHeight = "20px";
-            newX.style.WebkitTransitionDuration = "1s";
+            let hideTextTransition = "all 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) 0s";
+            let showTextTransition = "all 0.5s cubic-bezier(0.6, -0.28, 0.74, 0.05) 0s";
+            Task.stylizeHideButton(newX);
 
             let object = this;
-
             newX.addEventListener("click", function(){
-              if(this.className === "show"){
-                console.log(this);
-                this.parentNode.childNodes[2].childNodes[1].style.opacity = "0";
-                this.parentNode.childNodes[2].childNodes[1].style.visibility = "hidden";
-                this.className = "hidden";
-                this.parentNode.style.maxHeight = "30px";
-                object.hideChildren();
-              }
-              else{
-                this.className = "show";
-                this.parentNode.childNodes[2].childNodes[1].style.opacity = "1";
-                this.parentNode.childNodes[2].childNodes[1].style.visibility = "visible";
-                this.parentNode.style.maxHeight = "100px";
-                object.displayChildren();
-              }
+                let data = this.parentNode.childNodes[2].childNodes[1];
+                if(this.className === "show"){
+                    data.style.opacity = "0";
+                    data.style.visibility = "hidden";
+                    this.className = "hidden";
+                    this.parentNode.style.maxHeight = "30px";
+                    data.style.transition = hideTextTransition;
+                    object.hideChildren();
+                }
+                else{
+                    data.style.opacity = "1";
+                    data.style.visibility = "visible";
+                    this.className = "show";
+                    this.parentNode.style.maxHeight = "100px";
+                    data.style.transition = showTextTransition;
+                    object.displayChildren();
+                }
             });
             return newX;
         }
 
         createDeleteButton(){
           let newX = createElementComplete("div", "", "", '×');
-          newX.style.fontSize = "40px";
-          newX.style.color = "black";
-          newX.style.cssFloat = "right";
-          newX.style.cursor = "pointer";
-          newX.style.position = "";
-          newX.style.marginTop = "-10px";
+          Task.stylizeDeleteButton(newX);
 
           let object = this;
-
           newX.addEventListener("click", function(){
             object.removeSelf();
             object.getDisplayReference().parentNode.removeChild(object.getDisplayReference());
-
           });
           return newX;
+        }
+
+        static stylizeHideButton(btn){
+            btn.style.fontSize = "30px";
+            btn.style.color = "black";
+            btn.style.display = "block";
+            btn.style.cssFloat = "left";
+            btn.style.cursor = "pointer";
+            btn.style.position = "absolute";
+            btn.style.height = btn.style.lineHeight = "20px";
+            btn.style.WebkitTransitionDuration = "0.5s";
+        }
+
+        static stylizeDeleteButton(btn){
+            btn.style.fontSize = "40px";
+            btn.style.color = "black";
+            btn.style.cssFloat = "right";
+            btn.style.cursor = "pointer";
+            btn.style.position = "";
+            btn.style.marginTop = "-10px";
         }
 
         removeSelf(){
