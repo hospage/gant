@@ -98,7 +98,7 @@ Atributos:
       _name = nombre de la tarea (String)
       _type = tipo de tarea (Definido según el Enum taskType) [taskType.CONTAINER, taskType.MILESTONE, taskType.TASK]
       _progress = Flotante que define el progreso de la tarea. (0-1) [valor de 0.0 al crearse la tarea]
-      _childrenTasks = un arreglo de tareas que contiene las tareas hijo dado un padre
+      _childrenTasks = arreglo de tareas que contiene las tareas hijo dado un padre
       _displayReference = referencia del objeto hacia el documento HTML
       _idString = id de la tarea
       _gant = gant al que pertenece la tarea
@@ -130,22 +130,44 @@ const Task = (function(){
             this.setProgress(0.0);
         }
 
-        //Obtiene la tarea padre de un hijo
+        /*
+            14-Abril-2019
+            Obtiene atributo _parent
+            Argumentos: ninguno
+            Retorna objeto Task
+        */
         getParent() {
             return _parent.get(this);
         }
 
-        //Define el padre de una tarea
+        /*
+            14-Abril-2019
+            Asigna valor al atributo _parent
+            Argumentos:
+                newParent = objeto Task a asignar como _parent
+            Void
+        */
         setParent(newParent) {
             _parent.set(this, newParent)
         }
 
-        //Obtiene la fecha de inicio de una tarea
+        /*
+            14-Abril-2019
+            Obtiene atributo _beginDate
+            Argumentos: ninguno
+            Retorna objeto Date
+        */
         getBeginDate() {
             return _beginDate.get(this);
         }
 
-        //Define la fecha de inicio de una tarea
+        /*
+            14-Abril-2019
+            Asigna valor al atributo _beginDate
+            Argumentos:
+                newDate = objeto Date a asignar como fecha inicial
+            Void
+        */
         setBeginDate(newDate) {
             _beginDate.set(this, newDate);
             this.getDisplayReference()
@@ -155,13 +177,24 @@ const Task = (function(){
                 .innerHTML = DateUtilities.dateToString(this.getBeginDate());
         }
 
-        //Obtiene la fecha final de una tarea
+        /*
+            14-Abril-2019
+            Obtiene atributo _endDate
+            Argumentos: ninguno
+            Retorna objeto Date
+        */
         getEndDate() {
             return _endDate.get(this);
 
         }
 
-        //Encapsula la fecha final de una tarea
+        /*
+            14-Abril-2019
+            Asigna valor al atributo _endDate
+            Argumentos:
+                newDate = objeto Date a asignar como fecha final
+            Void
+        */
         setEndDate(newDate) {
             _endDate.set(this, newDate);
             this.getDisplayReference()
@@ -171,64 +204,128 @@ const Task = (function(){
                 .innerHTML = DateUtilities.dateToString(this.getEndDate());
         }
 
-        //Obtiene el nombre de una tarea
+        /*
+            14-Abril-2019
+            Obtiene atributo _name
+            Argumentos: ninguno
+            Retorna objeto String
+        */
         getName() {
             return _name.get(this);
         }
 
-        //Encapsula el nombre de una tarea
+        /*
+            14-Abril-2019
+            Asigna valor al atributo _name
+            Argumentos:
+                newName = objeto String a asignar como nombre
+            Void
+        */
         setName(newName) {
             _name.set(this, newName);
         }
 
-        //Obtiene el tipo de un objeto tarea (contenedor, hito, tarea)
+        /*
+            14-Abril-2019
+            Obtiene atributo _type
+            Argumentos: ninguno
+            Retorna Enum taskType
+        */
         getType() {
             return _type.get(this);
         }
 
-        //Encapsula el tipo de un objeto tarea
+        /*
+            14-Abril-2019
+            Asigna valor al atributo _type
+            Argumentos:
+                newType = Enum taskType a asignar como tipo
+            Void
+        */
         setType(newType) {
             _type.set(this, newType);
         }
 
-        //Obtiene el progreso de una tarea
+        /*
+            14-Abril-2019
+            Obtiene atributo _progress
+            Argumentos: ninguno
+            Retorna flotante 0 <= x <= 1
+        */
         getProgress() {
             return _progress.get(this);
         }
 
-        //Encapsula el progreso de una tarea
+        /*
+            14-Abril-2019
+            Asigna valor al atributo _progress
+            Argumentos:
+                progress = flotante 0 <= x <= 1 a asignar como progreso
+            Void
+        */
         setProgress(progress) {
             _progress.set(this, progress);
-            this.updateProgressBarWidth(progress);
+            this.updateProgressBarWidth();
         }
 
+        /*
+            14-Abril-2019
+            Obtiene atributo _progressBar
+            Argumentos: ninguno
+            Retorna referencia a la barra de progreso en el DOM
+        */
         getProgressBar(){
             return _progressBar.get(this);
         }
 
+        /*
+            14-Abril-2019
+            Obtiene atributo _progressBar
+            Argumentos:
+                newProgressRer = referencia a la barra de progreso dentro del DOM
+            Void
+        */
         setProgressBar(newProgressRef){
             _progressBar.set(this, newProgressRef);
         }
 
-        updateProgressBarWidth(progressFloat){
-            this.getProgressBar().style.width = (progressFloat * 100) + "%";
+        /*
+            14-Abril-2019
+            Actualiza longitud de la barra de progreso
+            Argumentos: ninguno
+            Void
+        */
+        updateProgressBarWidth(){
+            this.getProgressBar().style.width = (this.getProgress() * 100) + "%";
         }
 
-        //Obtiene el arreglo de tareas que son hijos
+        /*
+            14-Abril-2019
+            Obtiene atributo _childrenTasks
+            Argumentos: ninguno
+            Retorna arreglo de objetos Task
+        */
         getChildrenTasks() {
             return _childrenTasks.get(this);
         }
 
-        isDescendant(task) {
-            let parentTask = this.getParent();
-            if (parentTask === null)
-                return false;
-            else if (parentTask === task)
-                return true;
-            else
-                parentTask.isDescendant(task);
+        getChildTaskIndex(task) {
+            let arr = this.getChildrenTasks();
+            for (let i = 0; i < arr.length; i++) {
+                if (arr[i] === task)
+                    return i;
+            }
+            return arr.length;
         }
 
+        /*
+            14-Abril-2019
+            Agrega objeto Task al arreglo de Tasks, acomodando el Task dentro del DOM
+            según se requiera.
+            Argumentos:
+                newTask = objeto Task a agregar al arreglo _childrenTasks
+            Void
+        */
         pushTaskToChildrenTasks(newTask) {
             let childrenArr = this.getChildrenTasks();
             let parent = newTask.getParent();
@@ -250,6 +347,14 @@ const Task = (function(){
             newTask.setParent(this);
         }
 
+        /*
+            14-Abril-2019
+            Elimina objeto Task del arreglo de Tasks, eliminando el Task dentro del DOM
+            según se requiera.
+            Argumentos:
+                index = índice del Task a eliminar dentro del arreglo
+            Void
+        */
         popTaskFromChildrenTasksIndex(index) {
             let childrenArr = this.getChildrenTasks();
 
@@ -262,52 +367,84 @@ const Task = (function(){
             this.updateDate();
         }
 
-        //Encapsula la referencia del objeto
-        setDisplayReference(newDisplayReference) {
-            _displayReference.set(this, newDisplayReference);
-        }
-
-        //Obtiene la referencia de un objeto del tipo tarea
-        getDisplayReference() {
-            return _displayReference.get(this);
-        }
-
-        //Encapsula el id de una tarea
-        setIdString(newString) {
-            _idString.set(this, newString);
-        }
-
-        //Obtiene el id de una tarea
-        getIdString() {
-            return _idString.get(this);
-        }
-
-        //Encapsula el GANT al que pertenece
-        setGant(newGant) {
-            _gant.set(this, newGant);
-        }
-
-        //Obtiene el GANT al que pertenece
-        getGant() {
-            return _gant.get(this);
-        }
-
+        /*
+            14-Abril-2019
+            Elimina objeto Task del arreglo de Tasks, eliminando el Task dentro del DOM
+            según se requiera.
+            Argumentos:
+                task = objeto Task a eliminar dentro del arreglo
+            Void
+        */
         popTaskFromChildrenTasks(task) {
             this.popTaskFromChildrenTasksIndex(this.getChildTaskIndex(task));
         }
 
-        getChildTaskIndex(task) {
-            let arr = this.getChildrenTasks();
-            for (let i = 0; i < arr.length; i++) {
-                if (arr[i] === task)
-                    return i;
-            }
-            return arr.length;
+        /*
+            14-Abril-2019
+            Asigna valor al atributo _displayReference
+            Argumentos:
+                newDisplayReference = referencia a un elemento del DOM
+            Void
+        */
+        setDisplayReference(newDisplayReference) {
+            _displayReference.set(this, newDisplayReference);
+        }
+
+        /*
+            14-Abril-2019
+            Obtiene atributo _displayReference
+            Argumentos: ninguno
+            Retorna referencia al display de Task dentro del DOM
+        */
+        getDisplayReference() {
+            return _displayReference.get(this);
+        }
+
+        /*
+            14-Abril-2019
+            Asigna valor al atributo _idString
+            Argumentos:
+                newString = Objeto String
+            Void
+        */
+        setIdString(newString) {
+            _idString.set(this, newString);
+        }
+
+        /*
+            14-Abril-2019
+            obtiene atributo _displayReference
+            Argumentos: ninguno
+            Retorna objeto String, el ID de Task
+        */
+        getIdString() {
+            return _idString.get(this);
+        }
+
+        /*
+            14-Abril-2019
+            Asigna valor al atributo _gant
+            Argumentos:
+                newGant = objeto Gant
+            Void
+        */
+        setGant(newGant) {
+            _gant.set(this, newGant);
+        }
+
+        /*
+            14-Abril-2019
+            Obtiene atributo _displayReference
+            Argumentos: ninguno
+            Retorna objeto Gant
+        */
+        getGant() {
+            return _gant.get(this);
         }
 
         /*
             31-Marzo-2019
-            Obtiene el número de dias entre _beginDate y _endDate
+            Obtiene el número de dias entre _beginDate y _endDate, sin contar los fines de semana.
             Argumentos: ninguno
             Retorna entero
         */
@@ -332,7 +469,14 @@ const Task = (function(){
             return 1 + date2 - date1 - Math.floor((date2 - date1) / 7) * 2;
         }
 
-        setRemainingDays(newInt){
+        /*
+            14-Abril-2019
+            Cambia el texto que representa el número de días restantes dentro del DOM
+            Argumentos:
+                newInt = valor entero de días a desplegar
+            Void
+        */
+        setRemainingDaysText(newInt){
             this.getDisplayReference()
                 .getElementsByClassName("register")[1]
                 .getElementsByClassName("grouper")[1]
@@ -340,6 +484,32 @@ const Task = (function(){
                 .innerHTML = newInt + " día(s)";
         }
 
+        /*
+            14-Abril-2019
+            Revisa si el Task ingresado es predecesor del objeto
+            Argumentos:
+                task = objeto Task para hacer el chequeo
+            Retorna booleano (true si task es predecesor del objeto. false de lo contrario.)
+        */
+        isDescendant(task) {
+            let parentTask = this.getParent();
+            if (parentTask === null)
+                return false;
+            else if (parentTask === task)
+                return true;
+            else
+                parentTask.isDescendant(task);
+        }
+
+        /*
+            14-Abril-2019
+            Actualiza _beginDate y _endDate dependiendo si Task tiene hijos o no.
+            El algoritmo toma el menor valor de _beginDate y el mayor valor de _endDate
+            entre todos los hijos y los asigna a sus propios _beginDate y _endDate,
+            respectivamente. Si no tiene hijos, los valores no son modificados.
+            Argumentos: ninguno
+            Void
+        */
         updateDate(){
             let arr = this.getChildrenTasks();
             if(arr.length !== 0) {
@@ -353,14 +523,39 @@ const Task = (function(){
                 });
                 this.setBeginDate(beginDate);
                 this.setEndDate(endDate);
-                this.setRemainingDays(this.getRemainingTime());
+                this.setRemainingDaysText(this.getRemainingTime());
             }
             if(this.getParent() !== null)
                 this.getParent().updateDate();
         }
 
-        //Calcula el progreso total de una tarea, tomando en cuenta si es contenedor o tarea
-        RecursiveUpdateProgress() {
+        /*
+            14-Abril-2019
+            Actualiza el progreso total de una tarea. Si la tarea tiene padre, se llama
+            recursivamente la función hasta encontrar al predecesor más lejano, y luego se
+            llama la función recursiveUpdateProgress() a dicho predecesor
+            Argumentos: ninguno
+            Void
+        */
+        updateProgress(){
+            if(this.getParent() != null){
+                this.getParent().updateProgress();
+            }
+            else{
+                this.recursiveUpdateProgress();
+            }
+        }
+
+        /*
+            14-Abril-2019
+            Actualiza recursivamente el progreso de una tarea. Si la tarea no tiene hijos,
+            el progreso no se modifica y se retorna dicho progreso. En caso contrario,
+            se llama recursivamente a la función con los hijos de la tarea, se obtienen
+            sus progresos, se pondera según su tiempo en días y se suman las ponderaciones.
+            Argumentos: ninguno
+            Void
+        */
+        recursiveUpdateProgress() {
             if (this.getType() === taskType.CONTAINER) {
                 let arr = this.getChildrenTasks();
                 let progreso_total = 0.0000;
@@ -369,7 +564,7 @@ const Task = (function(){
                     dias_totales += item.getRemainingTime();
                 });
                 arr.forEach(function (item) {
-                    progreso_total += (item.getRemainingTime() / dias_totales) * item.RecursiveUpdateProgress();
+                    progreso_total += (item.getRemainingTime() / dias_totales) * item.recursiveUpdateProgress();
                 });
                 this.setProgress(progreso_total);
                 return progreso_total;
@@ -380,15 +575,14 @@ const Task = (function(){
             }
         }
 
-        updateProgress(){
-            if(this.getParent() != null){
-                this.getParent().updateProgress();
-            }
-            else{
-                this.RecursiveUpdateProgress();
-            }
-        }
-
+        /*
+            14-Abril-2019
+            Crea los Divs contenedores de los valores de información de Task dentro del DOM.
+            Argumentos:
+                classTags = Objeto String que define el nombre  la clase de las etiquetas.
+                classValues = Objeto String que define el nombre de la clase de los valores
+            Retorna un arreglo contenedor de todos los Divs
+        */
         createTaskDivs(classTags, classValues) {
             let itemsArray = [
                 [
@@ -434,6 +628,12 @@ const Task = (function(){
             return itemsArray;
         }
 
+        /*
+            14-Abril-2019
+            Crea la barra de progreso de Task
+            Argumentos: ninguno
+            Retorna Div contenedor de la barra de progreso
+        */
         createLoadBar() {
             let loadBar = createElementComplete('div', '', 'loadBar', '');
             let loaded = createElementComplete('div', '', 'loaded', "\xa0");
@@ -444,6 +644,12 @@ const Task = (function(){
             return loadBar;
         }
 
+        /*
+            14-Abril-2019
+            Asigna Listeners a la barra de progreso del Task
+            Argumentos: ninguno
+            Void
+        */
         setLoadBarListeners(loadBar) {
             let object = this;
             loadBar.onclick = function (ev) {
@@ -465,6 +671,14 @@ const Task = (function(){
             };
         }
 
+        /*
+            14-Abril-2019
+            Asigna Listeners al contenedor de Task en el DOM para arrastrar Task
+            hacia otros Task
+            Argumentos:
+                container = contenedor de Task dentro del DOM
+            Void
+        */
         setDragListeners(container){
             let object = this;
             container.ondragstart = function (ev) {
@@ -480,6 +694,13 @@ const Task = (function(){
             };
         }
 
+        /*
+            14-Abril-2019
+            Agrega valores de información de Task en su contenedor en el DOM
+            Argumentos:
+                container = contenedor de Task dentro del DOM
+            Void
+        */
         appendDisplayItems(container) {
             let itemsArray = this.createTaskDivs('tagName', 'tagValue');
             let top1 = itemsArray.length / 2;
@@ -529,6 +750,12 @@ const Task = (function(){
             container.appendChild(parameters);
         }
 
+        /*
+            14-Abril-2019
+            Crea contenedor de Task dentro del DOM
+            Argumentos: ninguno
+            Retorna contenedor de Task
+        */
         createDisplay() {
             let contenedor = this.createContainer();
             let box = document.createElement('div');
@@ -540,6 +767,14 @@ const Task = (function(){
             return contenedor;
         }
 
+        /*
+            14-Abril-2019
+            Asigna Listeners al contenedor de Task en el DOM para arrastrar Task
+            hacia otros Task
+            Argumentos:
+                container = contenedor de Task dentro del DOM
+            Void
+        */
         createContainer(){
             let container = createElementComplete('div', '', 'contenedor', '');
             container.draggable = true;
@@ -551,6 +786,12 @@ const Task = (function(){
             return container;
         }
 
+        /*
+            14-Abril-2019
+            Oculta los hijos del Task dentro del DOM
+            Argumentos: ninguno
+            Void
+        */
         hideChildren(){
             let arr = this.getChildrenTasks();
             if (arr.length !== 0){
@@ -560,6 +801,12 @@ const Task = (function(){
             }
         }
 
+        /*
+            14-Abril-2019
+            Oculta el Task y los hijos del Task dentro del DOM, recursivamente.
+            Argumentos: ninguno
+            Void
+        */
         hideTask(){
             let arr = this.getChildrenTasks();
             if (arr.length !== 0){
@@ -570,6 +817,12 @@ const Task = (function(){
             this.getDisplayReference().style.display = "none";
         }
 
+        /*
+            14-Abril-2019
+            Muestra los hijos del Task dentro del DOM
+            Argumentos: ninguno
+            Void
+        */
         displayChildren(){
             let arr = this.getChildrenTasks();
             if(arr.length !== 0){
@@ -579,6 +832,12 @@ const Task = (function(){
             }
         }
 
+        /*
+            14-Abril-2019
+            Muestra el Task y los hijos del Task dentro del DOM, recursivamente.
+            Argumentos: ninguno
+            Void
+        */
         displayTask(){
             let arr = this.getChildrenTasks();
             if(arr.length !== 0){
@@ -590,21 +849,40 @@ const Task = (function(){
             this.getDisplayReference().style.display = "block";
         }
 
+        /*
+            14-Abril-2019
+            Define acciones a realizar al comenzar a arrastrar un Task.
+            Argumentos: ninguno
+            Void
+        */
         dragTask(event) {
             event.dataTransfer.setData("text/idString", this.getIdString());
             event.dataTransfer.effectAllowed = "move";
         }
 
+        /*
+            14-Abril-2019
+            Define acciones a realizar al soltar un task sobre otro
+            Argumentos: ninguno
+            Void
+        */
         dropTask(event) {
             event.preventDefault();
             let originTask = this.getGant().getTaskFromIdString(event.dataTransfer.getData("text/idString"));
             if (originTask !== this && !this.isDescendant(originTask)) {
                 this.pushTaskToChildrenTasks(originTask);
-                originTask.updateTask();
+                originTask.updateTaskInDOM();
             }
         }
 
-        updateTask() {
+        /*
+            14-Abril-2019
+            Actualiza contenedor de Task dentro del DOM, según si hubo
+            cambio de padre o no.
+            Argumentos: ninguno
+            Void
+        */
+        updateTaskInDOM() {
             let parent = this.getParent();
             if (parent !== null) {
                 let parentRef = parent.getDisplayReference();
@@ -615,12 +893,18 @@ const Task = (function(){
                 parentRef.parentNode.insertBefore(displayRef, parentRef.nextElementSibling);
                 this.getDisplayReference().style.marginLeft = 100 + parent_margin + "px";
                 this.getChildrenTasks().forEach(function(item){
-                    item.updateTask();
+                    item.updateTaskInDOM();
                 });
             }
             this.updateProgress();
         }
 
+        /*
+            14-Abril-2019
+            Crea botón para ocultar una tarea
+            Argumentos: ninguno
+            Retorna Div botón
+        */
         createHideButton(){
             let newX = createElementComplete("div", "", "showBtn", 'V');
             Task.stylizeHideButton(newX);
@@ -628,6 +912,13 @@ const Task = (function(){
             return newX;
         }
 
+        /*
+            14-Abril-2019
+            ASigna Listeners a un botón para ocultar tarea
+            Argumentos:
+                hideBtn = Div a asignar los Listeners
+            Void
+        */
         setHideButtonListener(hideBtn){
             let object = this;
             hideBtn.addEventListener("click", function(){
@@ -663,6 +954,21 @@ const Task = (function(){
             });
         }
 
+        /*
+            14-Abril-2019
+            Cambia estilo de valores de información de Task dentro del DOM
+            Argumentos:
+                data =  Referencia al div contenedor de los valores a estilizar
+                hideBtn = Referencia al botón que oculta y muestra los valores
+                opacity = valor de opacidad para data
+                visibility = valor de visibilidad para data
+                transform = transformación a realizar sobre el botón
+                className = clase a asignar al botón
+                maxHeight = altura máxima a cambiar el contenedor del botón
+                transition = valor de transición para data
+                hide = booleano. Si se ocultará data, true. Sino, false.
+            Void
+        */
         toggleTextVisibility(data, hideBtn, opacity, visibility, transform, className, maxHeight, transition, hide){
             data.style.transition = transition;
             data.style.opacity = opacity;
@@ -678,6 +984,12 @@ const Task = (function(){
                 this.displayChildren();
         }
 
+        /*
+            14-Abril-2019
+            Elimina la propia referencia del Task dentro del Gant
+            Argumentos: ninguno
+            Void
+        */
         removeSelf(){
             if(this.getChildrenTasks().length !== 0){
                 this.getChildrenTasks().forEach(function(item){
@@ -689,6 +1001,12 @@ const Task = (function(){
                 this.getParent().popTaskFromChildrenTasks(this);
         }
 
+        /*
+            14-Abril-2019
+            Crea botón para eliminar el propio Task
+            Argumentos: ninguno
+            Retorna Div botón
+        */
         createDeleteButton(){
           let newX = createElementComplete("div", "", "", '×');
           Task.stylizeDeleteButton(newX);
@@ -701,6 +1019,13 @@ const Task = (function(){
           return newX;
         }
 
+        /*
+            14-Abril-2019
+            Estiliza botón de ocultar tarea
+            Argumentos:
+                btn = botón a asignar estilo
+            Void
+        */
         static stylizeHideButton(btn){
             btn.style.fontSize = "30px";
             btn.style.color = "black";
@@ -712,6 +1037,13 @@ const Task = (function(){
             btn.style.WebkitTransitionDuration = "0.5s";
         }
 
+        /*
+            14-Abril-2019
+            Estiliza botón de eliminar tarea misma
+            Argumentos:
+                btn = botón a asignar estilo
+            Void
+        */
         static stylizeDeleteButton(btn){
             btn.style.fontSize = "40px";
             btn.style.color = "black";
@@ -721,15 +1053,18 @@ const Task = (function(){
             btn.style.marginTop = "-10px";
         }
 
-        //Obtiene todos los atributos de una tarea y los pone en una cadena
+        /*
+            14-Abril-2019
+            método toString para representar objeto Task como Cadena
+            Argumentos: ninguno
+            Retorna objeto String
+        */
         toString() {
             return "Name: " + this.getName() + "\nParent: " + this.getParent().getIdString() + "\nBegin Date: " + String(this.getBeginDate())
                 + "\nEnd Date: " + String(this.getEndDate()) + "\nTask type: " + String(this.getType()) + "\nProgress: " +
                 String(this.getProgress()) + "%\n\n";
         }
-
     }
-
     return Task;
 })();
 
@@ -738,8 +1073,10 @@ const Task = (function(){
     Definición del objeto Gant encargado de manejar la interfaz y todas las tareas del manejador
     Atributos:
         _taskList = arreglo de todos los objetos Task que maneja Gant
+        _formReference = referencia al form para agregar tarea
+        _interfaceReference = referencia a la interfaz del Gant
+        _taskCounter = contador que guarda la cantidad de Tasks que han sido creados
 */
-
 let Gant = (function () {
     let _taskList = new WeakMap();
     let _formReference = new WeakMap();
@@ -750,22 +1087,48 @@ let Gant = (function () {
         constructor(){
             _taskList.set(this, []);
             _formReference.set(this, this.createForm());
-            _interfaceReference.set(this, this.drawInterface());
+            _interfaceReference.set(this, this.createInterface());
             _taskCounter.set(this, 0);
         }
 
+        /*
+            14-Abril-2019
+            Obtiene atributo _formReference
+            Argumentos: ninguno
+            Retorna elemento Form
+        */
         getFormReference(){
             return _formReference.get(this);
         }
 
+        /*
+            14-Abril-2019
+            Obtiene atributo _interfaceReference
+            Argumentos: ninguno
+            Retorna elemento Div
+        */
         getInterfaceReference(){
             return _interfaceReference.get(this);
         }
 
+        /*
+            14-Abril-2019
+            Obtiene atributo _taskList
+            Argumentos: ninguno
+            Retorna arreglo de objetos Task
+        */
         getTaskList(){
             return _taskList.get(this);
         }
 
+        /*
+            14-Abril-2019
+            Obtiene objeto Task dentro de _taskList a partir de su idString
+            Argumentos:
+                idString = id a buscar dentro de _taskList
+            Retorna objeto Task si el id se encuentra en _taskList. De lo contrario,
+            retorna null
+        */
         getTaskFromIdString(idString){
             let tasks = this.getTaskList();
             for (let i = 0; i < tasks.length; i++){
@@ -775,25 +1138,51 @@ let Gant = (function () {
             return null;
         }
 
+        /*
+            14-Abril-2019
+            Agrega objeto Task a _taskList
+            Argumentos:
+                newTask = objeto Task a agregar al arreglo
+            Void
+        */
         pushTaskToTaskList(newTask){
             this.getTaskList().push(newTask);
         }
 
+        /*
+            14-Abril-2019
+            Obtiene atributo _taskCounter
+            Argumentos: ninguno
+            Retorna entero con el conteo de Task que han sido creados
+        */
         getTaskCounter(){
             return _taskCounter.get(this);
         }
 
+        /*
+            14-Abril-2019
+            Incrementa atributo _taskCounter
+            Argumentos: ninguno
+            Void
+        */
         increaseTaskCounter(){
             _taskCounter.set(this, _taskCounter.get(this) + 1)
         }
 
-        drawInterface(){
+        /*
+            14-Abril-2019
+            Crea interfaz del Gant
+            Argumentos: ninguno
+            Retorna Div contenedor de la interfaz
+        */
+        createInterface(){
             let newInterface = createElementComplete("div", "gantInterface", "contenedorMaestro", "");
 
             let newButton = Gant.createBtn("Nueva tarea");
             let object = this;
             newButton.addEventListener("click", function(){
-                document.body.firstChild.style.display = "inline-block";
+                let firstElem = document.body.firstChild;
+                firstElem.style.display = "inline-block";
                 this.parentNode.appendChild(object.getFormReference());
             });
 
@@ -802,6 +1191,12 @@ let Gant = (function () {
             return newInterface;
         }
 
+        /*
+            14-Abril-2019
+            Crea Form para ingresar los datos para agregar una nueva tarea
+            Argumentos: ninguno
+            Retorna elemento Form
+        */
         createForm(){
             let newForm = createElementComplete('form', 'taskForm', '', '');
             let submit = Gant.createBtn("Agregar Tarea");
@@ -817,6 +1212,14 @@ let Gant = (function () {
             return newForm;
         }
 
+        /*
+            14-Abril-2019
+            Asigna listeners al botón de agregar tarea para recibir la información
+            ingresada
+            Argumentos:
+                btn = botón a definir como botón para agregar tarea
+            Void
+        */
         assignSubmitOnClick(btn){
             let object = this;
             btn.onclick = function(){
@@ -828,6 +1231,13 @@ let Gant = (function () {
                 }
             };
         }
+
+        /*
+            14-Abril-2019
+            Crea campos para ingresar la información para crear tareas
+            Argumentos: ninguno
+            Retorna div contenedor de todos los campos de ingreso de información
+        */
         static createGrid(){
             let izquierdas = [
                 document.createTextNode("Nombre: "),
@@ -863,12 +1273,24 @@ let Gant = (function () {
             return parent;
         }
 
+        /*
+            14-Abril-2019
+            Crea un elemento Input
+            Argumentos: ninguno
+            Retorna elemento Input
+        */
         static createTextInput(className){
             let textInput = createElementComplete('input', '', className, '');
             textInput.type = "text";
             return textInput;
         }
 
+        /*
+            14-Abril-2019
+            Crea un elemento Input donde se puede seleccionar la fecha en un date picker
+            Argumentos: ninguno
+            Retorna elemento Input
+        */
         static createDatePicker(name){
             let dateInput = document.createElement("input");
             dateInput.type = "text";
@@ -880,6 +1302,12 @@ let Gant = (function () {
             return dateInput;
         }
 
+        /*
+            14-Abril-2019
+            Crea un elemento Select para seleccionar el tipo de tarea
+            Argumentos: ninguno
+            Retorna elemento Select
+        */
         static createTypeSelector(){
             let taskTypeSel = createElementComplete('select', '', 'typeSelector', '');
             taskTypeSel.style.margin = "0px 0px 0px 8px";
@@ -898,6 +1326,12 @@ let Gant = (function () {
             return taskTypeSel;
         }
 
+        /*
+            14-Abril-2019
+            Crea un elemento button
+            Argumentos: ninguno
+            Retorna elemento button
+        */
         static createBtn(string){
             let newButton = document.createElement("input");
             newButton.type = "button";
@@ -905,6 +1339,12 @@ let Gant = (function () {
             return newButton;
         }
 
+        /*
+            14-Abril-2019
+            Crea botón X para cerrar el Form de ingreso de datos.
+            Argumentos: ninguno
+            Retorna elemento Div
+        */
         static createCloseX(){
             let newX = createElementComplete("div", "", "", '×');
             newX.style.fontSize = "40px";
@@ -922,6 +1362,13 @@ let Gant = (function () {
             return newX;
         }
 
+        /*
+            14-Abril-2019
+            Agrega un Task a _taskList según la información ingresada
+            en el Form
+            Argumentos: ninguno
+            Retorna nueva Task creada
+        */
         addTask(){
             let formData = this.getFormReference();
 
@@ -954,15 +1401,29 @@ let Gant = (function () {
         }
 
         /***************************************Estilos***************************************/
-        static stylizeForm(newForm){
-            newForm.style.position = "fixed";
-            newForm.style.opacity = "1";
-            newForm.style.zIndex = "100";
-            newForm.style.left = "50%";
-            newForm.style.top = "50%";
-            newForm.style.transform = "translate(-50%, -50%)";
+
+        /*
+            14-Abril-2019
+            Estiliza elemento Form
+            Argumentos:
+                form = elemento Form a estilizar
+            Void
+        */
+        static stylizeForm(form){
+            form.style.position = "fixed";
+            form.style.opacity = "1";
+            form.style.zIndex = "100";
+            form.style.left = "50%";
+            form.style.top = "50%";
+            form.style.transform = "translate(-50%, -50%)";
         }
 
+        /*
+            14-Abril-2019
+            Crea div para oscurecer la pantalla y lo inserta en el body
+            Argumentos: ninguno
+            Void
+        */
         static addDarkenerDiv(){
             let divVar = createElementComplete("div", "darkenerDiv", "", "");
             divVar.style.background = "#000";
