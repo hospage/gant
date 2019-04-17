@@ -502,6 +502,19 @@ const Task = (function(){
         }
 
         /*
+            16-Abril-2019
+            Obtiene el nivel de la tarea dentro de la jerarquía de tareas.
+            (0 = tarea raíz)
+            Argumentos: ninguno
+            Retorna entero
+        */
+        getTaskLevel(){
+            if(this.getParent() === null)
+                return 0;
+            return this.getParent().getTaskLevel() + 1;
+        }
+
+        /*
             14-Abril-2019
             Actualiza _beginDate y _endDate dependiendo si Task tiene hijos o no.
             El algoritmo toma el menor valor de _beginDate y el mayor valor de _endDate
