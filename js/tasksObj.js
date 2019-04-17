@@ -956,20 +956,27 @@ const Task = (function(){
         updateTaskInDOM() {
             let parent = this.getParent();
             if (parent !== null) {
-                let parentRef = parent.getDisplayReference();
+                let parentDisplayRef = parent.getDisplayReference();
                 let displayRef = this.getDisplayReference();
-                let margin = parentRef.style.marginLeft;
-                let barraRefPadre = document.getElementById('barra_progreso_'+parent.getName()).style.marginLeft;
-                let barraRef = document.getElementById('barra_progreso_'+this.getName());
-                let parent_margin = margin !== "" ? parseInt(margin) : 0;
+
+                let barraRefPadre = parentDisplayRef.getElementsByClassName('loadBar')[0];
+                let barraRef = displayRef.getElementsByClassName('loadBar')[0];
+
                 displayRef.parentNode.removeChild(displayRef);
-                parentRef.parentNode.insertBefore(displayRef, parentRef.nextElementSibling);
-                barraRef.style.marginLeft = 350 + barraRefPadre + "px";
+
+                parentDisplayRef.parentNode.insertBefore(displayRef, parentDisplayRef.nextElementSibling);
+                barraRef.style.marginLeft =
+                    (
+                        barraRefPadre.style.marginLeft !== '' ? parseInt(barraRefPadre.style.marginLeft) + 50 : 350
+                    ) + "px";
                 this.getChildrenTasks().forEach(function(item){
                     item.updateTaskInDOM();
                 });
-                parentRef.id = 'tarea_padre';
             }
+            if(this.getTaskLevel() % 2 === 0)
+                this.getDisplayReference().style.backgroundColor = "rgba(0,0,0,0)";
+            else
+                this.getDisplayReference().style.backgroundColor = "rgba(221,221,221,0.6)";
             this.updateProgress();
         }
 
