@@ -115,18 +115,19 @@ const Task = (function(){
     const _idString = new WeakMap();
     const _gant = new WeakMap();
     const _progressBar = new WeakMap();
+    const _previousTask = new WeakMap();
     class Task {
-        constructor(name, parent, beginDate, endDate, type, idString, gant) {
+        constructor(name, parent, beginDate, endDate, type, idString, gant, previousTask) {
             _childrenTasks.set(this, []);
             _beginDate.set(this, beginDate);
             _endDate.set(this, endDate);
             this.setParent(parent);
+            this.setPreviousTask(previousTask);
             this.setType(type);
             this.setName(name);
             this.setDisplayReference(this.createDisplay());
             this.setGant(gant);
             this.setIdString(idString);
-
             this.setProgress(0.0);
         }
 
@@ -149,6 +150,27 @@ const Task = (function(){
         */
         setParent(newParent) {
             _parent.set(this, newParent)
+        }
+
+        /*
+            14-Abril-2019
+            Obtiene atributo _previousTask
+            Argumentos: ninguno
+            Retorna objeto Task
+        */
+        getPreviousTask() {
+            return _previousTask.get(this);
+        }
+
+        /*
+            14-Abril-2019
+            Asigna valor al atributo _previousTask
+            Argumentos:
+                newTask = objeto Task a asignar como _previousTask
+            Void
+        */
+        setPreviousTask(newTask) {
+            _previousTask.set(this, newTask);
         }
 
         /*
@@ -264,7 +286,13 @@ const Task = (function(){
             Void
         */
         setProgress(progress) {
+            let nextTasks = this.getNextTasks();
             _progress.set(this, progress);
+            if(nextTasks.length !== 0 && progress !== 1) {
+                nextTasks.forEach(function (item) {
+                    item.setProgress(0.0);
+                })
+            }
             this.updateProgressBarWidth();
         }
 
@@ -377,6 +405,16 @@ const Task = (function(){
         */
         popTaskFromChildrenTasks(task) {
             this.popTaskFromChildrenTasksIndex(this.getChildTaskIndex(task));
+        }
+
+        getNextTasks() {
+            let nextTasks = [];
+            let object = this;
+            this.getGant().getTaskList().forEach(function (item) {
+                if(object === item.getPreviousTask())
+                    nextTasks.push(item);
+            });
+            return nextTasks;
         }
 
         /*
@@ -666,20 +704,25 @@ const Task = (function(){
         setLoadBarListeners(loadBar) {
             let object = this;
             loadBar.onclick = function (ev) {
-                if (object.getType() === taskType.TASK) {
-                    ev.stopPropagation();
-                    let xPos = this.getBoundingClientRect().left;
-                    let xEnd = this.getBoundingClientRect().right;
-                    let xMouse = ev.clientX;
+                if(object.getPreviousTask() === null || object.getPreviousTask().getProgress() === 1) {
+                    if (object.getType() === taskType.TASK) {
 
-                    let progressFloat = (parseFloat(xMouse) - xPos) / (xEnd - xPos);
-                    if (progressFloat < 0.02)
-                        progressFloat = 0;
-                    else if (progressFloat > 0.98)
-                        progressFloat = 1;
+                        ev.stopPropagation();
+                        let xPos = this.getBoundingClientRect().left;
+                        let xEnd = this.getBoundingClientRect().right;
+                        let xMouse = ev.clientX;
+                        let progressFloat = (parseFloat(xMouse) - xPos) / (xEnd - xPos);
+                        if (progressFloat < 0.02)
+                            progressFloat = 0;
+                        else if (progressFloat > 0.98)
+                            progressFloat = 1;
 
-                    object.setProgress(progressFloat);
-                    object.updateProgress();
+                        object.setProgress(progressFloat);
+                        object.updateProgress();
+                    }
+                }
+                else {
+
                 }
             };
         }
@@ -772,7 +815,7 @@ const Task = (function(){
         createDisplay() {
             let contenedor = document.createElement('div');
             contenedor.className = 'tarea';
-            contenedor.draggable = 'true';
+            contenedor.draggable = true;
 
             contenedor.appendChild(this.createDeleteButton());
             contenedor.appendChild(this.createHideButton());
@@ -889,7 +932,7 @@ const Task = (function(){
         dropTask(event) {
             event.preventDefault();
             let originTask = this.getGant().getTaskFromIdString(event.dataTransfer.getData("text/idString"));
-            if (originTask !== this && !this.isDescendant(originTask)) {
+            if (originTask !== this && originTask.getPreviousTask() !== this && !this.isDescendant(originTask)) {
                 this.pushTaskToChildrenTasks(originTask);
                 originTask.updateTaskInDOM();
             }
@@ -1038,6 +1081,7 @@ const Task = (function(){
           newX.addEventListener("click", function(){
             object.removeSelf();
             object.getDisplayReference().parentNode.removeChild(object.getDisplayReference());
+            object.getGant().popTaskFromTaskList(object);
           });
           return newX;
         }
@@ -1174,6 +1218,39 @@ let Gant = (function () {
 
         /*
             14-Abril-2019
+            Elimina objeto Task del arreglo de Tasks, eliminando el Task dentro del DOM
+            según se requiera.
+            Argumentos:
+                index = índice del Task a eliminar dentro del arreglo
+            Void
+        */
+        popTaskFromTaskListIndex(index) {
+            this.getTaskList().splice(index, 1);
+        }
+
+        /*
+            14-Abril-2019
+            Elimina objeto Task del arreglo de Tasks, eliminando el Task dentro del DOM
+            según se requiera.
+            Argumentos:
+                task = objeto Task a eliminar dentro del arreglo
+            Void
+        */
+        popTaskFromTaskList(task) {
+            this.popTaskFromTaskListIndex(this.getTaskIndex(task));
+        }
+
+        getTaskIndex(task) {
+            let arr = this.getTaskList();
+            for (let i = 0; i < arr.length; i++) {
+                if (arr[i] === task)
+                    return i;
+            }
+            return arr.length;
+        }
+
+        /*
+            14-Abril-2019
             Obtiene atributo _taskCounter
             Argumentos: ninguno
             Retorna entero con el conteo de Task que han sido creados
@@ -1227,7 +1304,7 @@ let Gant = (function () {
             submit.className = "addTask";
             this.assignSubmitOnClick(submit);
 
-            newForm.appendChild(Gant.createCloseX());
+            newForm.appendChild(this.createCloseX());
             newForm.appendChild(this.createGrid());
             newForm.appendChild(submit);
 
@@ -1235,7 +1312,6 @@ let Gant = (function () {
             Gant.addDarkenerDiv();
             return newForm;
         }
-
 
         /*
             14-Abril-2019
@@ -1253,8 +1329,20 @@ let Gant = (function () {
                     this.parentNode.parentNode.removeChild(this.parentNode);
                     document.getElementById("darkenerDiv").style.display = "none";
                     object.getInterfaceReference().appendChild(task.getDisplayReference());
+                    object.resetInputs();
                 }
             };
+        }
+
+        resetInputs(){
+            let beginDate = this.getFormReference().getElementsByClassName("beginDate")[0];
+            let endDate = this.getFormReference().getElementsByClassName("endDate")[0];
+            let name = this.getFormReference().getElementsByClassName("taskName")[0];
+
+            beginDate.disabled = false;
+            beginDate.value = "";
+            endDate.value = "";
+            name.value = "";
         }
 
         /*
@@ -1263,9 +1351,6 @@ let Gant = (function () {
             Argumentos: ninguno
             Retorna div contenedor de todos los campos de ingreso de información
         */
-
-
-
         createGrid(){
             let izquierdas = createTextNodes(["Nombre: ",
             "Fecha de Inicio: ",
@@ -1301,47 +1386,65 @@ let Gant = (function () {
             return parent;
         }
 
-        getAllTaskNames(){
-          let t = [];
-
-          this.getTaskList().forEach(function(item){
-            t.push(item.getName());
-          });
-
-          console.log(t);
-
-          return t;
-        }
-
         /*
           La siguiente funcion toma por Argumentos
           el nombre de la clase de un elemento del tipo select
           el cual sera el medio de ingreso de la tarea predecesora
         */
-
         createPredecessorPicker(){
           let picker = createElementComplete('select', '', 'predSelect', '');
-
           picker.style.marginLeft = "8px";
 
-          this.getAllTaskNames().forEach(function(item){
-            picker.appendChild(createElementComplete('option', '', '', String(item)));
+          picker.appendChild(createElementComplete('option', '', '', ' '));
+
+          this.getTaskList().forEach(function(item){
+              let option = createElementComplete('option', '', '', item.getName());
+              option.value = item.getIdString();
+              picker.appendChild(option);
           });
 
+          this.setPredecessorPickerListener(picker);
           return picker;
         }
 
+        setPredecessorPickerListener(picker){
+            let object = this;
+            picker.addEventListener("change", function(){
+                let selectedOption = picker.options[picker.selectedIndex].value;
+                let predecessor = selectedOption === '' ? null : object.getTaskFromIdString(selectedOption);
+                let formData = object.getFormReference();
+
+                if(predecessor !== null){
+                    let newDate = new Date(predecessor.getEndDate());
+
+                    formData.getElementsByClassName("beginDate")[0].value =
+                        DateUtilities.dateToString(newDate);
+
+                    newDate.setDate(newDate.getDate() + 1);
+                    formData.getElementsByClassName("endDate")[0].value =
+                        DateUtilities.dateToString(newDate);
+
+                    console.log(formData.getElementsByClassName("beginDate")[0].disabled);
+                    formData.getElementsByClassName("beginDate")[0].disabled = true;
+                }
+                else
+                    formData.getElementsByClassName("beginDate")[0].disabled = false;
+
+            });
+        }
 
         /*
           la siguiente funcion agrega el nombre de las tareas actuales
           al elemento select del Input
         */
-
         updateSelectPredecessor(){
-          let picker = this.getInterfaceReference().childNodes[1 + this.getTaskList().length].childNodes[1].childNodes[4].childNodes[1].childNodes[0];
+          let picker = this.getInterfaceReference().getElementsByClassName('predSelect')[0];
             picker.innerHTML = "";
-            this.getAllTaskNames().forEach(function(item){
-            picker.appendChild(createElementComplete('option', '', '', String(item)));
+            picker.appendChild(createElementComplete('option', '', '', ' '));
+            this.getTaskList().forEach(function(item){
+                let option = createElementComplete('option', '', '', item.getName());
+                option.value = item.getIdString();
+                picker.appendChild(option);
           });
         }
 
@@ -1417,8 +1520,9 @@ let Gant = (function () {
             Argumentos: ninguno
             Retorna elemento Div
         */
-        static createCloseX(){
+        createCloseX(){
             let newX = createElementComplete("div", "", "", '×');
+            let object = this;
             newX.style.fontSize = "40px";
             newX.style.color = "black";
             newX.style.display = "block";
@@ -1426,10 +1530,10 @@ let Gant = (function () {
             newX.style.cursor = "pointer";
             newX.style.position = "fixed";
             newX.style.height = newX.style.lineHeight = "20px";
-
             newX.addEventListener("click", function(){
                 this.parentNode.parentNode.removeChild(this.parentNode);
                 document.getElementById("darkenerDiv").style.display = "none";
+                object.resetInputs();
             });
             return newX;
         }
@@ -1443,16 +1547,20 @@ let Gant = (function () {
         */
         addTask(){
             let formData = this.getFormReference();
-
             let taskName = formData.getElementsByClassName("taskName")[0];
-            let type = formData.getElementsByClassName("typeSelector")[0];
             let beginDateString = formData.getElementsByClassName("beginDate")[0];
             let endDateString = formData.getElementsByClassName("endDate")[0];
-            if(beginDateString === "" || endDateString === "")
+
+            if (beginDateString === "" || endDateString === "" || taskName.value.replace(/\s/g, '') === '')
                 return;
 
+            let type = formData.getElementsByClassName("typeSelector")[0];
+            let predPicker = formData.getElementsByClassName("predSelect")[0];
             let beginDate = DateUtilities.parseDate(beginDateString.value);
             let endDate = DateUtilities.parseDate(endDateString.value);
+            let predecessor = predPicker.options[predPicker.selectedIndex].value === '' ?
+                null
+                : this.getTaskFromIdString(predPicker.options[predPicker.selectedIndex].value);
 
             if(DateUtilities.leastDate(beginDate, endDate) === endDate)
                 return;
@@ -1464,7 +1572,8 @@ let Gant = (function () {
                 endDate,
                 taskType.nameOf(type.options[type.selectedIndex].value),
                 "task#" + this.getTaskCounter(),
-                this
+                this,
+                predecessor
             );
 
             this.increaseTaskCounter();

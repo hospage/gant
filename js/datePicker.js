@@ -1312,7 +1312,7 @@ class DateUtilities {
     */
 
     static dateToString(dateObj){
-        return dateObj.getDate() + "/" + (dateObj.getMonth() + 1) + "/" + dateObj.getFullYear();
+        return dateObj.getDate() + "/" + DateUtilities.getMonthString(dateObj.getMonth()) + "/" + dateObj.getFullYear();
     }
 
     static leastDate(date1, date2){
