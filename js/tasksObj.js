@@ -704,7 +704,8 @@ const Task = (function(){
         setLoadBarListeners(loadBar) {
             let object = this;
             loadBar.onclick = function (ev) {
-                if(object.getPreviousTask() === null || object.getPreviousTask().getProgress() === 1) {
+                let predecessor = object.getPreviousTask();
+                if(predecessor === null || predecessor.getProgress() === 1) {
                     if (object.getType() === taskType.TASK) {
 
                         ev.stopPropagation();
@@ -722,7 +723,14 @@ const Task = (function(){
                     }
                 }
                 else {
+                    while(predecessor.getDisplayReference().style.display === "none")
+                        predecessor = predecessor.getParent();
+                    let backgroundColor = predecessor.getDisplayReference().style.backgroundColor;
 
+                    predecessor.getDisplayReference().style.backgroundColor = "rgba(255, 0, 0, 0.36)";
+                    setTimeout(function () {
+                        predecessor.getDisplayReference().style.backgroundColor = backgroundColor;
+                    }, 500);
                 }
             };
         }
@@ -1240,6 +1248,12 @@ let Gant = (function () {
             this.popTaskFromTaskListIndex(this.getTaskIndex(task));
         }
 
+        /*
+            Obtiene el index del Task dentro del arreglo
+            Argumentos:
+                task = Objeto Task a buscar dentro del arreglo
+            Retorna número entero
+        */
         getTaskIndex(task) {
             let arr = this.getTaskList();
             for (let i = 0; i < arr.length; i++) {
@@ -1334,6 +1348,12 @@ let Gant = (function () {
             };
         }
 
+        /*
+            17-Abril-2019
+            Limpia los values de los inputs en el form para ingresar nueva tarea.
+            Argumentos: ninguno
+            Void
+        */
         resetInputs(){
             let beginDate = this.getFormReference().getElementsByClassName("beginDate")[0];
             let endDate = this.getFormReference().getElementsByClassName("endDate")[0];
@@ -1387,9 +1407,10 @@ let Gant = (function () {
         }
 
         /*
-          La siguiente funcion toma por Argumentos
-          el nombre de la clase de un elemento del tipo select
-          el cual sera el medio de ingreso de la tarea predecesora
+            16-Abril-2019
+            Crea selector de tarea predecesora
+            Argumentos: ninguno
+            Retorna elemento Select
         */
         createPredecessorPicker(){
           let picker = createElementComplete('select', '', 'predSelect', '');
@@ -1407,6 +1428,12 @@ let Gant = (function () {
           return picker;
         }
 
+        /*
+            16-Abril-2019
+            Asigna Listeners al selector de tareas predecesoras
+            Argumentos: ninguno
+            Void
+        */
         setPredecessorPickerListener(picker){
             let object = this;
             picker.addEventListener("change", function(){
@@ -1434,8 +1461,10 @@ let Gant = (function () {
         }
 
         /*
-          la siguiente funcion agrega el nombre de las tareas actuales
-          al elemento select del Input
+            16-Abril-2019
+            Actualiza opciones del selector de tarea predecesora
+            Argumentos: ninguno
+            Void
         */
         updateSelectPredecessor(){
           let picker = this.getInterfaceReference().getElementsByClassName('predSelect')[0];
