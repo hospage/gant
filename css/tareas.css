@@ -1,3 +1,4 @@
+
 div.contenedor{
   width:70%;
   font-family: 'Poppins', sans-serif;
@@ -9,6 +10,17 @@ div.contenedor{
   margin: 30px;
   transition: 0.5s ease-in-out;
   max-height: 100px;
+}
+div[id ^="barra_progreso"]{
+  margin-left: 300px;
+}
+div.tarea{
+  border-bottom: 2px solid #333333;
+  padding-bottom: 10px;
+  padding-top: 10px;
+}
+div#tarea_padre{
+  background: #ddd;
 }
 
 

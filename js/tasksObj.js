@@ -604,7 +604,7 @@ const Task = (function(){
                     createElementComplete('div', '', classTags, 'Progreso: '),
                     createElementComplete('div', '', classValues, ''),
                     "400px"
-                ],
+                ], 
                 [
                     createElementComplete('div', '', classTags, 'Tiempo Restante: '),
                     createElementComplete('div', '', classValues, this.getRemainingTime() + " día(s)"),
@@ -635,7 +635,7 @@ const Task = (function(){
             Retorna Div contenedor de la barra de progreso
         */
         createLoadBar() {
-            let loadBar = createElementComplete('div', '', 'loadBar', '');
+            let loadBar = createElementComplete('div', 'barra_progreso_'+this.getName(), 'loadBar', '');
             let loaded = createElementComplete('div', '', 'loaded', "\xa0");
             this.setLoadBarListeners(loadBar);
             loaded.style.width = "0%";
@@ -757,7 +757,14 @@ const Task = (function(){
             Retorna contenedor de Task
         */
         createDisplay() {
-            let contenedor = this.createContainer();
+            let contenedor = document.createElement('div');
+            contenedor.className = 'tarea';
+            contenedor.draggable = 'true';
+
+            contenedor.appendChild(this.createDeleteButton());
+            contenedor.appendChild(this.createHideButton());
+
+            this.setDragListeners(contenedor);
             let box = document.createElement('div');
             box.style.marginLeft = "30px";
             this.appendDisplayItems(box);
@@ -888,13 +895,16 @@ const Task = (function(){
                 let parentRef = parent.getDisplayReference();
                 let displayRef = this.getDisplayReference();
                 let margin = parentRef.style.marginLeft;
+                let barraRefPadre = document.getElementById('barra_progreso_'+parent.getName()).style.marginLeft;
+                let barraRef = document.getElementById('barra_progreso_'+this.getName());
                 let parent_margin = margin !== "" ? parseInt(margin) : 0;
                 displayRef.parentNode.removeChild(displayRef);
                 parentRef.parentNode.insertBefore(displayRef, parentRef.nextElementSibling);
-                this.getDisplayReference().style.marginLeft = 100 + parent_margin + "px";
+                barraRef.style.marginLeft = 350 + barraRefPadre + "px";
                 this.getChildrenTasks().forEach(function(item){
                     item.updateTaskInDOM();
                 });
+                parentRef.id = 'tarea_padre';
             }
             this.updateProgress();
         }
