@@ -53,3 +53,14 @@ function removeElement(id) {
     let elem = document.getElementById(id);
     return elem.parentNode.removeChild(elem);
 }
+
+function createTextNodes(array){
+  let t = [];
+  if(array != []){
+    array.forEach(function(item){
+      t.push(document.createTextNode(String(item)));
+    });
+  }
+
+  return t;
+}

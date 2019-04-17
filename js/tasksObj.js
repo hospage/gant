@@ -604,7 +604,7 @@ const Task = (function(){
                     createElementComplete('div', '', classTags, 'Progreso: '),
                     createElementComplete('div', '', classValues, ''),
                     "400px"
-                ], 
+                ],
                 [
                     createElementComplete('div', '', classTags, 'Tiempo Restante: '),
                     createElementComplete('div', '', classValues, this.getRemainingTime() + " día(s)"),
@@ -1194,6 +1194,7 @@ let Gant = (function () {
                 let firstElem = document.body.firstChild;
                 firstElem.style.display = "inline-block";
                 this.parentNode.appendChild(object.getFormReference());
+                object.updateSelectPredecessor();
             });
 
             newInterface.appendChild(newButton);
@@ -1214,13 +1215,14 @@ let Gant = (function () {
             this.assignSubmitOnClick(submit);
 
             newForm.appendChild(Gant.createCloseX());
-            newForm.appendChild(Gant.createGrid());
+            newForm.appendChild(this.createGrid());
             newForm.appendChild(submit);
 
             Gant.stylizeForm(newForm);
             Gant.addDarkenerDiv();
             return newForm;
         }
+
 
         /*
             14-Abril-2019
@@ -1248,19 +1250,22 @@ let Gant = (function () {
             Argumentos: ninguno
             Retorna div contenedor de todos los campos de ingreso de información
         */
-        static createGrid(){
-            let izquierdas = [
-                document.createTextNode("Nombre: "),
-                document.createTextNode("Fecha de Inicio: "),
-                document.createTextNode("Fecha de término: "),
-                document.createTextNode("Tipo de tarea: ")
-            ];
+
+
+
+        createGrid(){
+            let izquierdas = createTextNodes(["Nombre: ",
+            "Fecha de Inicio: ",
+            "Fecha de término: ",
+            "Tipo de tarea: ",
+            "Tarea Anterior:"]);
 
             let derechas = [
                 Gant.createTextInput("taskName"),
                 Gant.createDatePicker("beginDate"),
                 Gant.createDatePicker("endDate"),
-                Gant.createTypeSelector("typePicker")
+                Gant.createTypeSelector("typePicker"),
+                this.createPredecessorPicker("predecesor")
             ];
 
             let parent = createElementComplete('div', '', 'inputDialog', '');
@@ -1281,6 +1286,50 @@ let Gant = (function () {
             });
 
             return parent;
+        }
+
+        getAllTaskNames(){
+          let t = [];
+
+          this.getTaskList().forEach(function(item){
+            t.push(item.getName());
+          });
+
+          console.log(t);
+
+          return t;
+        }
+
+        /*
+          La siguiente funcion toma por Argumentos
+          el nombre de la clase de un elemento del tipo select
+          el cual sera el medio de ingreso de la tarea predecesora
+        */
+
+        createPredecessorPicker(){
+          let picker = createElementComplete('select', '', 'predSelect', '');
+
+          picker.style.marginLeft = "8px";
+
+          this.getAllTaskNames().forEach(function(item){
+            picker.appendChild(createElementComplete('option', '', '', String(item)));
+          });
+
+          return picker;
+        }
+
+
+        /*
+          la siguiente funcion agrega el nombre de las tareas actuales
+          al elemento select del Input
+        */
+
+        updateSelectPredecessor(){
+          let picker = this.getInterfaceReference().childNodes[1 + this.getTaskList().length].childNodes[1].childNodes[4].childNodes[1].childNodes[0];
+            picker.innerHTML = "";
+            this.getAllTaskNames().forEach(function(item){
+            picker.appendChild(createElementComplete('option', '', '', String(item)));
+          });
         }
 
         /*
