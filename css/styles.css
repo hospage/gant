@@ -3,53 +3,131 @@
 }
 
 .inputDialog{
-  padding: 15px 20px 15px 20px;
-  border: none;
-  background-color: #dd4949;
-  width: 700px;
-  font-weight: lighter;
-  color: #e3e1ef;
+    padding: 15px 20px 15px 20px;
+    border: none;
+    background-color: #dd4949;
+    width: 700px;
+    font-weight: lighter;
+    color: #e3e1ef;
 }
 
 .inputDialog td{
-  margin: 100px;
+    margin: 100px;
 }
 
 input[type=text] {
-  padding:5px 20px;
-  border: none;
-  margin: 3px 10px 3px 10px;
-  width: 100%;
-  height: 30px;
+    padding:5px 20px;
+    border: none;
+    margin: 3px 10px 3px 10px;
+    width: 100%;
+    height: 30px;
 }
 
 div.tagHolder{
-  width: 600px;
-  margin: 10px 20px 10px 20px;
+    width: 600px;
+    margin: 10px 20px 10px 20px;
 }
 
 div.tagIdentifier{
-  display: inline-grid;
-  width: 150px;
+    display: inline-grid;
+    width: 150px;
 }
 
 div.tagName{
-  display: inline-grid;
-  width: 100px;
+    display: inline-grid;
+    width: 100px;
 }
 
 div.tagValue{
-  display: inline-grid;
+    display: inline-grid;
 }
 
 div.contenedorMaestro{
-  width: 90%;
-  color: #333333;
-  border: 1px solid #333333;
-  padding: 10px 30px 10px 30px;
-  margin: 30px;
+    color: #333333;
+    border: 1px solid #333333;
+    padding: 10px 30px;
+    margin: 30px;
 }
 
 div.grouper{
-  display: inline-block;
+    display: inline-block;
 }
+
+input[type="button"].addTask{
+    background-color: white;
+    border: none;
+    color: #dd4949;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    margin: 8px 0 0 290px;
+    transition-duration: 0.5s;
+}
+
+input[type="button"].addTask:hover{
+    color: white;
+    background-color: #dd4949;
+}
+
+input[type="button"].newTask {
+    display: block;
+    margin: 0 auto;
+    width: 10em;
+    background-color: red;
+    border: none;
+    color: white;
+    padding: 1em 1.5em;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    transition: 0.2s linear;
+}
+
+input[type="button"].newTask:hover {
+    background-color: rgb(255,155,155);
+}
+
+#tasksInfoDiv {
+    padding-top: 0.2em;
+    width: 30%;
+    display: inline-block;
+    /*border-right: 0.2em solid black;*/
+}
+
+#tasksInfoDiv, #tasksBarsTable {
+    margin-top: 2em;
+}
+
+#tasksBarsTable{
+    vertical-align: top;
+    display: inline-block;
+    max-width: 70%;
+    overflow-x: scroll;
+    table-layout: auto;
+    -webkit-user-select: none;
+    border-spacing: 0;
+}
+
+#tasksBarsTable *{
+    font-family: 'Roboto', sans-serif;
+    -webkit-user-select: none;
+}
+
+#tasksBarsTable th, #tasksBarsTable td  {
+    font-size: 1.15em;
+}
+
+#tasksBarsTable td {
+    border: none;
+    padding: 0.1em 0 0;
+}
+
+#tasksBarsTable th {
+    text-align: center;
+    border-right: 0.03em solid black;
+    border-bottom: 0.03em solid black;
+    padding: 0 0.1em;
+}
+
+

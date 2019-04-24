@@ -1,79 +1,58 @@
 
 div.contenedor{
-  width:70%;
-  font-family: 'Poppins', sans-serif;
-  color: #333333;
-  border-style: solid;
-  border-color: #333333;
-  border-radius: 30px;
-  padding: 10px 30px 10px 30px;
-  margin: 30px;
-  transition: 0.5s ease-in-out;
-  max-height: 100px;
-}
-div[id ^="barra_progreso"]{
-  margin-left: 300px;
+    width:70%;
+    font-family: 'Poppins', sans-serif;
+    color: #333333;
+    border-style: solid;
+    border-color: #333333;
+    border-radius: 30px;
+    padding: 10px 30px 10px 30px;
+    margin: 30px;
+    transition: 0.5s ease-in-out;
+    max-height: 100px;
 }
 div.tarea{
-  margin: 30px;
-  border-radius: 30px;
-  border-bottom: 2px solid #333333;
-  padding: 15px;
-  transition: max-height 0.5s ease-in-out, background-color  0.3s ease-out;
-  max-height: 100px;
+    display: flow-root;
+    margin: 0 2em 0.05em;
+    border-radius: 1em;
+    border-bottom: 2px solid #333333;
+    padding: 0.1em;
+    transition: max-height 0.5s ease-in-out, background-color  0.3s ease-out;
+}
+
+div.taskData {
+    margin-top: 0.4em;
+    margin-left: 4em;
+    width: 12em;
+}
+
+div.taskName {
+    margin-bottom: 0.2em;
+}
+
+div.hideData {
+    font-size: x-small;
+    margin-left: -4em;
 }
 
 
 div.nombre {
-  display: inline-block;
-  width: 15%;
+    display: inline-block;
+    width: 15%;
 }
 
 div.loadBar {
-  width: 100%;
-  border-style: solid;
-  border-color: #c94c4c;
-  border-radius: 30px;
-  display: inline-block;
-  padding: 0;
+    border-radius: 0.8em;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    border: 0.05em solid #c94c4c;
+    z-index: 10;
 }
 
 div.loaded {
-  border-radius: 30px 0 0 30px;
-  display: inline-block;
-  height: inherit;
-  background-color: #dc8989;
-}
-
-div#uno.loaded{
-  width: 20%;
-}
-
-div#dos.loaded{
-  width: 77%;
-}
-
-div#tres.loaded{
-  width:  45%;
-}
-
-div#cuatro.loaded{
-  width: 90%;
-}
-
-input[type="button"].addTask{
-  background-color: white;
-  border: none;
-  color: #dd4949;
-  padding: 15px 32px;
-  text-align: center;
-  text-decoration: none;
-  font-size: 16px;
-  margin: 8px 0 0 290px;
-  transition-duration: 0.5s;
-}
-
-input[type="button"].addTask:hover{
-    color: white;
-    background-color: #dd4949;
+    flex-grow: 1;
+    background-color: #e45555;
 }

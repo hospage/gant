@@ -126,6 +126,7 @@ const Task = (function(){
             this.setType(type);
             this.setName(name);
             this.setDisplayReference(this.createDisplay());
+            this.setProgressBar(this.createLoadBar());
             this.setGant(gant);
             this.setIdString(idString);
             this.setProgress(0.0);
@@ -319,12 +320,12 @@ const Task = (function(){
 
         /*
             14-Abril-2019
-            Actualiza longitud de la barra de progreso
+            Actualiza longitud de la barra interna de progreso
             Argumentos: ninguno
             Void
         */
         updateProgressBarWidth(){
-            this.getProgressBar().style.width = (this.getProgress() * 100) + "%";
+            this.getProgressBar().childNodes[0].style.width = (this.getProgress() * 100) + "%";
         }
 
         /*
@@ -635,48 +636,24 @@ const Task = (function(){
             Retorna un arreglo contenedor de todos los Divs
         */
         createTaskDivs(classTags, classValues) {
-            let itemsArray = [
+            return [
                 [
-                    createElementComplete('div', '', classTags, 'Nombre: '),
-                    createElementComplete('div', '', classValues, String(this.getName())),
-                    "150px"
+                    createElementComplete("span", '', classTags, 'Nombre: '),
+                    createElementComplete("span", '', classValues, String(this.getName()))
                 ],
                 [
-                    createElementComplete('div', '', classTags, 'Fecha Inicial: '),
-                    createElementComplete('div', '', classValues, DateUtilities.dateToString(this.getBeginDate())),
-                    "150px"
+                    createElementComplete("span", '', classTags, 'Fecha Inicial: '),
+                    createElementComplete("span", '', classValues, DateUtilities.dateToString(this.getBeginDate()))
                 ],
                 [
-                    createElementComplete('div', '', classTags, 'Fecha Final: '),
-                    createElementComplete('div', '', classValues, DateUtilities.dateToString(this.getEndDate())),
-                    "150px"
+                    createElementComplete("span", '', classTags, 'Fecha Final: '),
+                    createElementComplete("span", '', classValues, DateUtilities.dateToString(this.getEndDate()))
                 ],
                 [
-                    createElementComplete('div', '', classTags, 'Progreso: '),
-                    createElementComplete('div', '', classValues, ''),
-                    "400px"
-                ],
-                [
-                    createElementComplete('div', '', classTags, 'Tiempo Restante: '),
-                    createElementComplete('div', '', classValues, this.getRemainingTime() + " día(s)"),
-                    "150px"
-                ],
-                [
-                    createElementComplete('div', '', classTags, ''),
-                    createElementComplete('div', '', classValues, ''),
-                    "150px"
+                    createElementComplete("span", '', classTags, 'Tiempo Restante: '),
+                    createElementComplete("span", '', classValues, this.getRemainingTime() + " día(s)")
                 ]
             ];
-
-            itemsArray.forEach(function (item) {
-                item[1].style.width = item[2];
-            });
-
-            itemsArray[3][1].appendChild(this.createLoadBar());
-            itemsArray[4][1].style.padding = '20px 0px 0px 0px';
-            itemsArray[4][1].style.position = 'absolute';
-
-            return itemsArray;
         }
 
         /*
@@ -686,11 +663,12 @@ const Task = (function(){
             Retorna Div contenedor de la barra de progreso
         */
         createLoadBar() {
+            console.log(this.getDisplayReference().style.maxHeight);
             let loadBar = createElementComplete('div', 'barra_progreso_'+this.getName(), 'loadBar', '');
             let loaded = createElementComplete('div', '', 'loaded', "\xa0");
             this.setLoadBarListeners(loadBar);
             loaded.style.width = "0%";
-            this.setProgressBar(loaded);
+            this.setProgressBar(loadBar);
             loadBar.appendChild(loaded);
             return loadBar;
         }
@@ -767,51 +745,26 @@ const Task = (function(){
         */
         appendDisplayItems(container) {
             let itemsArray = this.createTaskDivs('tagName', 'tagValue');
-            let top1 = itemsArray.length / 2;
+            let newDiv = createElementComplete('div', "", "taskData", "");
+            let dataDiv = createElementComplete("div", "", "hideData", "");
 
-            let o = createElementComplete('div', '', 'register', '');
-            let pl = createElementComplete('div', '', 'grouper', '');
-            let pr = createElementComplete('div', '', 'grouper', '');
-            pl.style.width = "250px";
-            pr.style.width = "600px";
+            newDiv.appendChild(createElementComplete("div", "", "taskName", ""));
 
-            pl.appendChild(itemsArray[0][0]);
-            pl.appendChild(itemsArray[0][1]);
-            pr.appendChild(itemsArray[top1][0]);
-            pr.appendChild(itemsArray[top1][1]);
+            newDiv.childNodes[0].appendChild(itemsArray[0][0]);
+            newDiv.childNodes[0].appendChild(itemsArray[0][1]);
+            itemsArray.splice(0, 1);
 
-            o.appendChild(pl);
-            o.appendChild(pr);
+            itemsArray.forEach(function (item) {
+                let saver = createElementComplete("div","","","");
+                saver.appendChild(item[0]);
+                saver.appendChild(item[1]);
+                dataDiv.appendChild(saver);
+            });
 
-            container.appendChild(o);
+            Task.initializeTextVisibility(dataDiv, false);
 
-            let parameters = createElementComplete('div', '', '', '');
-            parameters.style.opacity = "1";
-
-            for (let i = 1; i < top1; i++) {
-                let m = createElementComplete('div', '', 'register', '');
-                let kl = createElementComplete('div', '', 'grouper', '');
-                let kr = createElementComplete('div', '', 'grouper', '');
-                kl.style.width = "250px";
-                kr.style.width = "600px";
-
-
-                let k1 = itemsArray[i][0];
-                let k2 = itemsArray[i][1];
-                let k3 = itemsArray[i + top1][0];
-                let k4 = itemsArray[i + top1][1];
-                kl.appendChild(k1);
-                kl.appendChild(k2);
-                kr.appendChild(k3);
-                kr.appendChild(k4);
-
-                m.appendChild(kl);
-                m.appendChild(kr);
-
-                parameters.appendChild(m);
-            }
-
-            container.appendChild(parameters);
+            newDiv.appendChild(dataDiv);
+            container.appendChild(newDiv);
         }
 
         /*
@@ -824,37 +777,14 @@ const Task = (function(){
             let contenedor = document.createElement('div');
             contenedor.className = 'tarea';
             contenedor.draggable = true;
+            contenedor.style.maxHeight = "30px";
 
             contenedor.appendChild(this.createDeleteButton());
             contenedor.appendChild(this.createHideButton());
 
             this.setDragListeners(contenedor);
-            let box = document.createElement('div');
-            box.style.marginLeft = "30px";
-            this.appendDisplayItems(box);
-
-            contenedor.appendChild(box);
-
+            this.appendDisplayItems(contenedor);
             return contenedor;
-        }
-
-        /*
-            14-Abril-2019
-            Asigna Listeners al contenedor de Task en el DOM para arrastrar Task
-            hacia otros Task
-            Argumentos:
-                container = contenedor de Task dentro del DOM
-            Void
-        */
-        createContainer(){
-            let container = createElementComplete('div', '', 'contenedor', '');
-            container.draggable = true;
-
-            container.appendChild(this.createDeleteButton());
-            container.appendChild(this.createHideButton());
-
-            this.setDragListeners(container);
-            return container;
         }
 
         /*
@@ -911,10 +841,9 @@ const Task = (function(){
         */
         displayTask(){
             let arr = this.getChildrenTasks();
-            if(arr.length !== 0){
+            if(arr.length !== 0 && this.getDisplayReference().getElementsByClassName("showBtn").length !== 0){
                 arr.forEach(function (item) {
-                    item.displayChildren();
-                    item.getDisplayReference().style.display = "block";
+                    item.displayTask();
                 })
             }
             this.getDisplayReference().style.display = "block";
@@ -987,7 +916,7 @@ const Task = (function(){
             Retorna Div botón
         */
         createHideButton(){
-            let newX = createElementComplete("div", "", "showBtn", 'V');
+            let newX = createElementComplete("div", "", "hideBtn", 'V');
             Task.stylizeHideButton(newX);
             this.setHideButtonListener(newX);
             return newX;
@@ -1003,36 +932,48 @@ const Task = (function(){
         setHideButtonListener(hideBtn){
             let object = this;
             hideBtn.addEventListener("click", function(){
-            let hideTextTransition = "all 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) 0s";
-            let showTextTransition = "all 0.5s cubic-bezier(0.6, -0.28, 0.74, 0.05) 0s";
-            let data = hideBtn.parentNode.childNodes[2].childNodes[1];
-            data.style.transition = hideTextTransition;
-
-            if(this.className === "showBtn")
-                object.toggleTextVisibility(
-                    data,
-                    this,
-                    "0",
-                    "hidden",
-                    "rotate(-90deg)",
-                    "hideBtn",
-                    "30px",
-                    hideTextTransition,
-                    true
-                );
-            else
-                object.toggleTextVisibility(
-                    data,
-                    this,
-                    "1",
-                    "visible",
-                    null,
-                    "showBtn",
-                    "100px",
-                    showTextTransition,
-                    false
-                );
+                let hideTextTransition = "all 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) 0s";
+                let showTextTransition = "all 0.5s cubic-bezier(0.6, -0.28, 0.74, 0.05) 0s";
+                let data = hideBtn.parentNode.childNodes[2].childNodes[1];
+                data.style.transition = hideTextTransition;
+                if(this.className === "showBtn")
+                    object.toggleTextVisibility(
+                        data,
+                        this,
+                        "0",
+                        "hidden",
+                        "rotate(-90deg)",
+                        "hideBtn",
+                        "30px",
+                        hideTextTransition,
+                        true
+                    );
+                else
+                    object.toggleTextVisibility(
+                        data,
+                        this,
+                        "1",
+                        "visible",
+                        null,
+                        "showBtn",
+                        "100px",
+                        showTextTransition,
+                        false
+                    );
             });
+        }
+
+        static initializeTextVisibility(data, visible){
+            if(visible){
+                data.style.transition = "all 0.5s cubic-bezier(0.6, -0.28, 0.74, 0.05) 0s";
+                data.style.opacity = "1";
+                data.style.visibility = "visible";
+            }
+            else{
+                data.style.transition = "all 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) 0s";
+                data.style.opacity = "0";
+                data.style.visibility = "hidden";
+            }
         }
 
         /*
@@ -1109,14 +1050,17 @@ const Task = (function(){
             Void
         */
         static stylizeHideButton(btn){
-            btn.style.fontSize = "30px";
+            btn.style.fontSize = "1.4em";
             btn.style.color = "black";
             btn.style.display = "block";
             btn.style.cssFloat = "left";
             btn.style.cursor = "pointer";
             btn.style.position = "absolute";
-            btn.style.height = btn.style.lineHeight = "20px";
+            btn.style.height = btn.style.lineHeight = "1em";
             btn.style.WebkitTransitionDuration = "0.5s";
+            btn.style.marginTop = "0.2em";
+            btn.style.marginLeft = "0.4em";
+            btn.style.transform = "rotate(-90deg)";
         }
 
         /*
@@ -1132,7 +1076,8 @@ const Task = (function(){
             btn.style.cssFloat = "right";
             btn.style.cursor = "pointer";
             btn.style.position = "";
-            btn.style.marginTop = "-10px";
+            btn.style.marginTop = "-0.27em";
+            btn.style.marginRight = "0.1em";
         }
 
         /*
@@ -1298,8 +1243,10 @@ let Gant = (function () {
         */
         createInterface(){
             let newInterface = createElementComplete("div", "gantInterface", "contenedorMaestro", "");
-
             let newButton = Gant.createBtn("Nueva tarea");
+            newButton.className = "newTask";
+            let dataDiv = createElementComplete("div", "tasksInfoDiv", "genContainer", "\xa0");
+            let barsDiv = Gant.createTable();
             let object = this;
             newButton.addEventListener("click", function(){
                 let firstElem = document.body.firstChild;
@@ -1307,10 +1254,28 @@ let Gant = (function () {
                 this.parentNode.appendChild(object.getFormReference());
                 object.updateSelectPredecessor();
             });
-
             newInterface.appendChild(newButton);
-
+            newInterface.appendChild(dataDiv);
+            newInterface.appendChild(barsDiv);
             return newInterface;
+        }
+
+        static createTable(){
+            let newTable = createElementComplete("table", "tasksBarsTable", "", "");
+            newTable.appendChild(document.createElement("tr"));
+            for (let i = 0; i < 63; i++) {
+                let newTh = document.createElement("th");
+                newTh.appendChild(document.createTextNode("" + (i % 7 + 1)));
+                newTable.childNodes[0].appendChild(newTh);
+            }
+            return newTable;
+        }
+
+        static createTaskRow(offset){
+            let newTr = document.createElement("tr");
+            for(let i=0; i<63 - offset + 1; i++)
+                newTr.appendChild(document.createElement("td"));
+            return newTr;
         }
 
         /*
@@ -1347,9 +1312,16 @@ let Gant = (function () {
             btn.onclick = function(){
                 let task = object.addTask();
                 if(task != null) {
+                    let trElem = Gant.createTaskRow(task.getRemainingTime());
+                    let tdElem = trElem.childNodes[0];
+                    tdElem.setAttribute("colspan", "" + task.getRemainingTime());
+                    tdElem.appendChild(task.getProgressBar());
+                    document.getElementById("tasksBarsTable").appendChild(trElem);
+
                     this.parentNode.parentNode.removeChild(this.parentNode);
                     document.getElementById("darkenerDiv").style.display = "none";
-                    object.getInterfaceReference().appendChild(task.getDisplayReference());
+                    document.getElementById("tasksInfoDiv").appendChild(task.getDisplayReference());
+                    task.getProgressBar().style.height = task.getDisplayReference().clientHeight - 1 + "px";
                     object.resetInputs();
                 }
             };
@@ -1457,8 +1429,6 @@ let Gant = (function () {
                     newDate.setDate(newDate.getDate() + 1);
                     formData.getElementsByClassName("endDate")[0].value =
                         DateUtilities.dateToString(newDate);
-
-                    console.log(formData.getElementsByClassName("beginDate")[0].disabled);
                     formData.getElementsByClassName("beginDate")[0].disabled = true;
                 }
                 else
