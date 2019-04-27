@@ -194,8 +194,7 @@ const Task = (function(){
         setBeginDate(newDate) {
             _beginDate.set(this, newDate);
             this.getDisplayReference()
-                .getElementsByClassName("register")[1]
-                .getElementsByClassName("grouper")[0]
+                .getElementsByClassName("hideData")[0]
                 .getElementsByClassName("tagValue")[0]
                 .innerHTML = DateUtilities.dateToString(this.getBeginDate());
         }
@@ -221,9 +220,8 @@ const Task = (function(){
         setEndDate(newDate) {
             _endDate.set(this, newDate);
             this.getDisplayReference()
-                .getElementsByClassName("register")[2]
-                .getElementsByClassName("grouper")[0]
-                .getElementsByClassName("tagValue")[0]
+                .getElementsByClassName("hideData")[0]
+                .getElementsByClassName("tagValue")[1]
                 .innerHTML = DateUtilities.dateToString(this.getEndDate());
         }
 
@@ -418,6 +416,18 @@ const Task = (function(){
             return nextTasks;
         }
 
+        updateTableIndex(newIndex){
+            let loadBar = this.getProgressBar();
+            if(loadBar.parentNode !== null) {
+                let tRow = loadBar.parentNode.parentNode;
+                tRow.replaceChild(
+                    document.createElement("td"),
+                    loadBar.parentNode
+                );
+                tRow.replaceChild(loadBar.parentNode, tRow.childNodes[newIndex]);
+            }
+        }
+
         /*
             14-Abril-2019
             Asigna valor al atributo _displayReference
@@ -517,9 +527,8 @@ const Task = (function(){
         */
         setRemainingDaysText(newInt){
             this.getDisplayReference()
-                .getElementsByClassName("register")[1]
-                .getElementsByClassName("grouper")[1]
-                .getElementsByClassName("tagValue")[0]
+                .getElementsByClassName("hideData")[0]
+                .getElementsByClassName("tagValue")[2]
                 .innerHTML = newInt + " día(s)";
         }
 
@@ -818,6 +827,7 @@ const Task = (function(){
                 });
             }
             this.getDisplayReference().style.display = "none";
+            this.getProgressBar().parentNode.parentNode.style.display = "none";
         }
 
         /*
@@ -849,6 +859,7 @@ const Task = (function(){
                 })
             }
             this.getDisplayReference().style.display = "block";
+            this.getProgressBar().parentNode.parentNode.style.display = "table-row";
         }
 
         /*
@@ -877,6 +888,22 @@ const Task = (function(){
                     arrowArr[0].click();
                 this.pushTaskToChildrenTasks(originTask);
                 originTask.updateTaskInDOM();
+                this.getGant().updateDateOffsets();
+            }
+        }
+
+        updateProgressBarDuration(){
+            console.log("entra");
+            let progressBar = this.getProgressBar();
+            let offset = this.getRemainingTime() - parseInt(progressBar.parentNode.getAttribute("colspan"));
+            progressBar.parentNode.setAttribute("colspan", this.getRemainingTime() + "");
+            if (offset < 1){
+                for (let i = 1; i <= -offset ; i++)
+                    progressBar.parentNode.parentNode.appendChild(document.createElement("td"));
+            }
+            else{
+                for(let i = 1; i <= offset ; i++)
+                    progressBar.parentNode.parentNode.removeChild(progressBar.parentNode.nextSibling);
             }
         }
 
@@ -900,15 +927,16 @@ const Task = (function(){
 
                 parentDisplayRef.parentNode.insertBefore(displayRef, parentDisplayRef.nextElementSibling);
                 parentProgressRowRef.parentNode.insertBefore(progressRowRef, parentProgressRowRef.nextElementSibling);
-
                 this.getChildrenTasks().forEach(function(item){
                     item.updateTaskInDOM();
                 });
+                parent.updateProgressBarDuration();
             }
             if(this.getTaskLevel() % 2 === 0)
                 this.getDisplayReference().style.backgroundColor = "rgba(0,0,0,0)";
             else
                 this.getDisplayReference().style.backgroundColor = "rgba(221,221,221,0.6)";
+
             this.updateProgress();
         }
 
@@ -1354,7 +1382,15 @@ let Gant = (function () {
                 let task = object.addTask();
                 if(task != null) {
                     let trElem = object.createTaskRow(task.getRemainingTime());
-                    let tdElem = trElem.childNodes[object.getDateOffset(task)];
+                    let tdIndex = object.getDateOffset(task);
+                    console.log(tdIndex);
+                    let tdElem;
+                    if (tdIndex === 0){
+                        tdElem = trElem.childNodes[0];
+                        object.updateDateOffsets();
+                    }
+                    else
+                        tdElem = trElem.childNodes[tdIndex];
                     tdElem.setAttribute("colspan", "" + task.getRemainingTime());
                     tdElem.appendChild(task.getProgressBar());
                     document.getElementById("tasksBarsTable").appendChild(trElem);
@@ -1385,6 +1421,13 @@ let Gant = (function () {
                     date2;
 
             return date2 - date1 - Math.floor((date2 - date1) / 7) * 2;
+        }
+
+        updateDateOffsets(){
+            let object = this;
+            this.getTaskList().forEach(function (item) {
+                item.updateTableIndex(object.getDateOffset(item));
+            })
         }
 
         getMinDate(){
