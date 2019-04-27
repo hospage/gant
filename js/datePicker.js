@@ -1163,6 +1163,7 @@ class DateUtilities {
 
     */
     static getDayFromYear(year, month, day){
+        month++;
         let days = ( (DateUtilities.isLeap(year) ? year - 1 : year) + (Math.floor(year / 4)) + (Math.floor(year / 400)) - (Math.floor(year / 100))) % 7;
         for (let i = 1; i < month; i++) {
             days = (days + DateUtilities.getDaysOfMonth(year, i)) % 7;
@@ -1184,14 +1185,14 @@ class DateUtilities {
 
     */
    static getDaysOfMonth(year, month) {
-        if (month < 7){
-            if (month % 2 === 0){
+        if (month < 8){
+            if (month % 2 === 1){
                 return 31;
             }
-            else if (month === 1 && DateUtilities.isLeap(year)){
+            else if (month === 2 && DateUtilities.isLeap(year)){
                 return 29;
             }
-            else if (month === 1){
+            else if (month === 2){
                 return 28;
             }
             else{
@@ -1199,7 +1200,7 @@ class DateUtilities {
             }
         }
         else{
-            if (month % 2 === 1){
+            if (month % 2 === 0){
                 return 31;
             }
             else{
