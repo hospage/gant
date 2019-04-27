@@ -56,7 +56,7 @@ function removeElement(id) {
 
 function createTextNodes(array){
   let t = [];
-  if(array != []){
+  if(array !== []){
     array.forEach(function(item){
       t.push(document.createTextNode(String(item)));
     });

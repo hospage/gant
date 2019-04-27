@@ -663,7 +663,6 @@ const Task = (function(){
             Retorna Div contenedor de la barra de progreso
         */
         createLoadBar() {
-            console.log(this.getDisplayReference().style.maxHeight);
             let loadBar = createElementComplete('div', 'barra_progreso_'+this.getName(), 'loadBar', '');
             let loaded = createElementComplete('div', '', 'loaded', "\xa0");
             this.setLoadBarListeners(loadBar);
@@ -754,11 +753,14 @@ const Task = (function(){
             newDiv.childNodes[0].appendChild(itemsArray[0][1]);
             itemsArray.splice(0, 1);
 
-            itemsArray.forEach(function (item) {
+            itemsArray.forEach(function (item, index) {
                 let saver = createElementComplete("div","","","");
                 saver.appendChild(item[0]);
                 saver.appendChild(item[1]);
                 dataDiv.appendChild(saver);
+                if((index + 1) % 2 === 0){
+                    dataDiv.appendChild(document.createElement("br"));
+                }
             });
 
             Task.initializeTextVisibility(dataDiv, false);
@@ -777,7 +779,7 @@ const Task = (function(){
             let contenedor = document.createElement('div');
             contenedor.className = 'tarea';
             contenedor.draggable = true;
-            contenedor.style.maxHeight = "30px";
+            contenedor.style.height = "34px";
 
             contenedor.appendChild(this.createDeleteButton());
             contenedor.appendChild(this.createHideButton());
@@ -870,6 +872,9 @@ const Task = (function(){
             event.preventDefault();
             let originTask = this.getGant().getTaskFromIdString(event.dataTransfer.getData("text/idString"));
             if (originTask !== this && originTask.getPreviousTask() !== this && !this.isDescendant(originTask)) {
+                let arrowArr = this.getDisplayReference().getElementsByClassName("hideBtn");
+                if (arrowArr.length !== 0)
+                    arrowArr[0].click();
                 this.pushTaskToChildrenTasks(originTask);
                 originTask.updateTaskInDOM();
             }
@@ -886,18 +891,16 @@ const Task = (function(){
             let parent = this.getParent();
             if (parent !== null) {
                 let parentDisplayRef = parent.getDisplayReference();
+                let parentProgressRowRef = parent.getProgressBar().parentNode.parentNode;
                 let displayRef = this.getDisplayReference();
-
-                let barraRefPadre = parentDisplayRef.getElementsByClassName('loadBar')[0];
-                let barraRef = displayRef.getElementsByClassName('loadBar')[0];
+                let progressRowRef = this.getProgressBar().parentNode.parentNode;
 
                 displayRef.parentNode.removeChild(displayRef);
+                progressRowRef.parentNode.removeChild(progressRowRef);
 
                 parentDisplayRef.parentNode.insertBefore(displayRef, parentDisplayRef.nextElementSibling);
-                barraRef.style.marginLeft =
-                    (
-                        barraRefPadre.style.marginLeft !== '' ? parseInt(barraRefPadre.style.marginLeft) + 50 : 350
-                    ) + "px";
+                parentProgressRowRef.parentNode.insertBefore(progressRowRef, parentProgressRowRef.nextElementSibling);
+
                 this.getChildrenTasks().forEach(function(item){
                     item.updateTaskInDOM();
                 });
@@ -944,7 +947,7 @@ const Task = (function(){
                         "hidden",
                         "rotate(-90deg)",
                         "hideBtn",
-                        "30px",
+                        "34px",
                         hideTextTransition,
                         true
                     );
@@ -956,10 +959,11 @@ const Task = (function(){
                         "visible",
                         null,
                         "showBtn",
-                        "100px",
+                        "60px",
                         showTextTransition,
                         false
                     );
+                object.getProgressBar().style.height = object.getDisplayReference().style.height;
             });
         }
 
@@ -998,7 +1002,7 @@ const Task = (function(){
 
             hideBtn.style.transform = transform;
             hideBtn.className = className;
-            hideBtn.parentNode.style.maxHeight = maxHeight;
+            hideBtn.parentNode.style.height = maxHeight;
 
             if (hide)
                 this.hideChildren();
@@ -1017,6 +1021,9 @@ const Task = (function(){
                 this.getChildrenTasks().forEach(function(item){
                     item.removeSelf();
                     item.getDisplayReference().parentNode.removeChild(item.getDisplayReference());
+                    item.getProgressBar().parentNode.parentNode.parentNode.removeChild(
+                        item.getProgressBar().parentNode.parentNode
+                    );
                 });
             }
             if(this.getParent() !== null)
@@ -1037,6 +1044,9 @@ const Task = (function(){
           newX.addEventListener("click", function(){
             object.removeSelf();
             object.getDisplayReference().parentNode.removeChild(object.getDisplayReference());
+            object.getProgressBar().parentNode.parentNode.parentNode.removeChild(
+                object.getProgressBar().parentNode.parentNode
+            );
             object.getGant().popTaskFromTaskList(object);
           });
           return newX;
@@ -1263,7 +1273,7 @@ let Gant = (function () {
         static createTable(){
             let newTable = createElementComplete("table", "tasksBarsTable", "", "");
             newTable.appendChild(document.createElement("tr"));
-            for (let i = 0; i < 63; i++) {
+            for (let i = 0; i < 56; i++) {
                 let newTh = document.createElement("th");
                 newTh.appendChild(document.createTextNode("" + (i % 7 + 1)));
                 newTable.childNodes[0].appendChild(newTh);
@@ -1271,11 +1281,42 @@ let Gant = (function () {
             return newTable;
         }
 
-        static createTaskRow(offset){
+        createTaskRow(offset){
             let newTr = document.createElement("tr");
-            for(let i=0; i<63 - offset + 1; i++)
+            let colNumber = this.getInterfaceReference().childNodes[2].childNodes[0].childNodes.length;
+            if(colNumber-offset < 0)
+                colNumber = this.refreshColsNumber(offset-colNumber+ 5);
+            for(let i=0; i<colNumber - offset + 1; i++)
                 newTr.appendChild(document.createElement("td"));
             return newTr;
+        }
+
+        refreshColsNumber(offsetInt){
+            let barsTable = this.getInterfaceReference().childNodes[2];
+            barsTable.childNodes.forEach(function (item, index) {
+                if(index === 0){
+                    for(let i = 1; i <= offsetInt ; i++)
+                        item.appendChild(
+                            createElementComplete(
+                                "th",
+                                "",
+                                "",
+                                item.childNodes.length % 7 + 1 + ""
+                            )
+                        )
+                }
+                else{
+                    for(let i = 1; i <= offsetInt ; i++)
+                        item.appendChild(createElementComplete(
+                                "td",
+                                "",
+                                "",
+                                ""
+                            )
+                        )
+                }
+            });
+            return barsTable.childNodes[0].childNodes.length;
         }
 
         /*
@@ -1312,8 +1353,8 @@ let Gant = (function () {
             btn.onclick = function(){
                 let task = object.addTask();
                 if(task != null) {
-                    let trElem = Gant.createTaskRow(task.getRemainingTime());
-                    let tdElem = trElem.childNodes[0];
+                    let trElem = object.createTaskRow(task.getRemainingTime());
+                    let tdElem = trElem.childNodes[object.getDateOffset(task)];
                     tdElem.setAttribute("colspan", "" + task.getRemainingTime());
                     tdElem.appendChild(task.getProgressBar());
                     document.getElementById("tasksBarsTable").appendChild(trElem);
@@ -1321,10 +1362,43 @@ let Gant = (function () {
                     this.parentNode.parentNode.removeChild(this.parentNode);
                     document.getElementById("darkenerDiv").style.display = "none";
                     document.getElementById("tasksInfoDiv").appendChild(task.getDisplayReference());
-                    task.getProgressBar().style.height = task.getDisplayReference().clientHeight - 1 + "px";
+                    task.getProgressBar().style.height = task.getDisplayReference().style.height;
                     object.resetInputs();
                 }
             };
+        }
+
+        getDateOffset(taskObj){
+            const one_day = 1000 * 60 * 60 * 24;
+
+            //Conversión de ambas fechas a días
+            let date1 = Math.round(this.getMinDate().getTime() / one_day);
+            let date2 = Math.round(taskObj.getBeginDate().getTime() / one_day);
+
+            //Suma los días correspondientes si la fecha de inicio ingresada es un sábado o un domingo
+            date1 = this.getMinDate().getDay() === 6 ? date1 + 2 :
+                this.getMinDate().getDay() === 0 ? date1 + 1 :
+                    date1;
+
+            date2 = taskObj.getBeginDate().getDay() === 6 ? date2 + 2 :
+                taskObj.getBeginDate().getDay() === 0 ? date2 + 1 :
+                    date2;
+
+            return date2 - date1 - Math.floor((date2 - date1) / 7) * 2;
+        }
+
+        getMinDate(){
+            let taskArr = this.getTaskList();
+            if(taskArr.length === 0)
+                return new Date(0);
+
+            let minDate = taskArr[0].getBeginDate();
+
+            taskArr.forEach(function (item) {
+                if(DateUtilities.leastDate(minDate, item.getBeginDate()) !== minDate)
+                    minDate = item.getBeginDate();
+            });
+            return minDate;
         }
 
         /*

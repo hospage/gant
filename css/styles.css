@@ -89,7 +89,7 @@ input[type="button"].newTask:hover {
 }
 
 #tasksInfoDiv {
-    padding-top: 0.2em;
+    padding-top: 0.3em;
     width: 30%;
     display: inline-block;
     /*border-right: 0.2em solid black;*/
@@ -100,9 +100,10 @@ input[type="button"].newTask:hover {
 }
 
 #tasksBarsTable{
+    margin-left: 4em;
     vertical-align: top;
     display: inline-block;
-    max-width: 70%;
+    max-width: 61%;
     overflow-x: scroll;
     table-layout: auto;
     -webkit-user-select: none;
@@ -128,6 +129,16 @@ input[type="button"].newTask:hover {
     border-right: 0.03em solid black;
     border-bottom: 0.03em solid black;
     padding: 0 0.1em;
+}
+
+#tasksBarsTable th:nth-child(14n),
+#tasksBarsTable th:nth-child(14n - 1),
+#tasksBarsTable th:nth-child(14n - 2),
+#tasksBarsTable th:nth-child(14n - 3),
+#tasksBarsTable th:nth-child(14n - 4),
+#tasksBarsTable th:nth-child(14n - 5),
+#tasksBarsTable th:nth-child(14n - 6){
+    background-color: #d7d7d7;
 }
 
 

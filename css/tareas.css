@@ -13,11 +13,12 @@ div.contenedor{
 }
 div.tarea{
     display: flow-root;
-    margin: 0 2em 0.05em;
+    margin: 0.1em 2em 0;
     border-radius: 1em;
     border-bottom: 2px solid #333333;
     padding: 0.1em;
-    transition: max-height 0.5s ease-in-out, background-color  0.3s ease-out;
+    transition: height 0.5s ease-in-out, background-color  0.3s ease-out;
+    box-sizing: border-box;
 }
 
 div.taskData {
@@ -33,6 +34,16 @@ div.taskName {
 div.hideData {
     font-size: x-small;
     margin-left: -4em;
+    width: 31em;
+}
+
+div.hideData div{
+    width: 45%;
+    display: inline;
+}
+
+div.hideData div:nth-child(2) {
+    margin-left: 3em;
 }
 
 
@@ -42,6 +53,7 @@ div.nombre {
 }
 
 div.loadBar {
+    box-sizing: border-box;
     border-radius: 0.8em;
     overflow: hidden;
     display: flex;
@@ -50,6 +62,7 @@ div.loadBar {
     padding: 0;
     border: 0.05em solid #c94c4c;
     z-index: 10;
+    transition: height 0.5s ease-in-out, background-color  0.3s ease-out;
 }
 
 div.loaded {
