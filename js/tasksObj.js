@@ -648,7 +648,7 @@ const Task = (function(){
             return [
                 [
                     createElementComplete("span", '', classTags, 'Nombre: '),
-                    createElementComplete("span", '', classValues, String(this.getName()))
+                    createElementComplete("span", '', classValues, this.getName())
                 ],
                 [
                     createElementComplete("span", '', classTags, 'Fecha Inicial: '),
@@ -699,9 +699,9 @@ const Task = (function(){
                         let xEnd = this.getBoundingClientRect().right;
                         let xMouse = ev.clientX;
                         let progressFloat = (parseFloat(xMouse) - xPos) / (xEnd - xPos);
-                        if (progressFloat < 0.02)
+                        if (progressFloat < (0.02 * 15 / object.getRemainingTime()))
                             progressFloat = 0;
-                        else if (progressFloat > 0.98)
+                        else if (progressFloat > (0.98 * 15 / object.getRemainingTime()))
                             progressFloat = 1;
 
                         object.setProgress(progressFloat);
@@ -711,7 +711,9 @@ const Task = (function(){
                 else {
                     while(predecessor.getDisplayReference().style.display === "none")
                         predecessor = predecessor.getParent();
-                    let backgroundColor = predecessor.getDisplayReference().style.backgroundColor;
+                    let backgroundColor = predecessor.getTaskLevel() % 2 === 0 ?
+                        "rgba(0,0,0,0)" :
+                        "rgba(221,221,221,0.6)";
 
                     predecessor.getDisplayReference().style.backgroundColor = "rgba(255, 0, 0, 0.36)";
                     setTimeout(function () {
@@ -755,10 +757,18 @@ const Task = (function(){
             let itemsArray = this.createTaskDivs('tagName', 'tagValue');
             let newDiv = createElementComplete('div', "", "taskData", "");
             let dataDiv = createElementComplete("div", "", "hideData", "");
+            let taskNameSpan = itemsArray[0][1];
 
             newDiv.appendChild(createElementComplete("div", "", "taskName", ""));
 
-            newDiv.childNodes[0].appendChild(itemsArray[0][0]);
+            if (getTextWidth(taskNameSpan) > 225){
+                do
+                    taskNameSpan.innerHTML = taskNameSpan.innerHTML.slice(0, -2);
+
+                while (getTextWidth(taskNameSpan) > 225);
+                taskNameSpan.innerHTML += "...";
+            }
+
             newDiv.childNodes[0].appendChild(itemsArray[0][1]);
             itemsArray.splice(0, 1);
 
@@ -893,7 +903,6 @@ const Task = (function(){
         }
 
         updateProgressBarDuration(){
-            console.log("entra");
             let progressBar = this.getProgressBar();
             let offset = this.getRemainingTime() - parseInt(progressBar.parentNode.getAttribute("colspan"));
             progressBar.parentNode.setAttribute("colspan", this.getRemainingTime() + "");
@@ -931,6 +940,8 @@ const Task = (function(){
                     item.updateTaskInDOM();
                 });
                 parent.updateProgressBarDuration();
+                displayRef.style.marginLeft = parseInt(
+                    window.getComputedStyle(parentDisplayRef, null).marginLeft) + 40 + "px";
             }
             if(this.getTaskLevel() % 2 === 0)
                 this.getDisplayReference().style.backgroundColor = "rgba(0,0,0,0)";
@@ -1045,17 +1056,16 @@ const Task = (function(){
             Void
         */
         removeSelf(){
+            this.getDisplayReference().parentNode.removeChild(this.getDisplayReference());
+            this.getProgressBar().parentNode.parentNode.parentNode.removeChild(
+                this.getProgressBar().parentNode.parentNode
+            );
             if(this.getChildrenTasks().length !== 0){
                 this.getChildrenTasks().forEach(function(item){
                     item.removeSelf();
-                    item.getDisplayReference().parentNode.removeChild(item.getDisplayReference());
-                    item.getProgressBar().parentNode.parentNode.parentNode.removeChild(
-                        item.getProgressBar().parentNode.parentNode
-                    );
                 });
             }
-            if(this.getParent() !== null)
-                this.getParent().popTaskFromChildrenTasks(this);
+            this.getGant().popTaskFromTaskList(this);
         }
 
         /*
@@ -1070,12 +1080,10 @@ const Task = (function(){
 
           let object = this;
           newX.addEventListener("click", function(){
-            object.removeSelf();
-            object.getDisplayReference().parentNode.removeChild(object.getDisplayReference());
-            object.getProgressBar().parentNode.parentNode.parentNode.removeChild(
-                object.getProgressBar().parentNode.parentNode
-            );
-            object.getGant().popTaskFromTaskList(object);
+              if(object.getParent() !== null)
+                  object.getParent().popTaskFromChildrenTasks(this);
+              object.removeSelf();
+              object.getGant().updateDateOffsets();
           });
           return newX;
         }
@@ -1093,7 +1101,6 @@ const Task = (function(){
             btn.style.display = "block";
             btn.style.cssFloat = "left";
             btn.style.cursor = "pointer";
-            btn.style.position = "absolute";
             btn.style.height = btn.style.lineHeight = "1em";
             btn.style.WebkitTransitionDuration = "0.5s";
             btn.style.marginTop = "0.2em";
@@ -1280,18 +1287,20 @@ let Gant = (function () {
             Retorna Div contenedor de la interfaz
         */
         createInterface(){
+            let object = this;
             let newInterface = createElementComplete("div", "gantInterface", "contenedorMaestro", "");
+
             let newButton = Gant.createBtn("Nueva tarea");
             newButton.className = "newTask";
-            let dataDiv = createElementComplete("div", "tasksInfoDiv", "genContainer", "\xa0");
-            let barsDiv = Gant.createTable();
-            let object = this;
             newButton.addEventListener("click", function(){
                 let firstElem = document.body.firstChild;
                 firstElem.style.display = "inline-block";
                 this.parentNode.appendChild(object.getFormReference());
                 object.updateSelectPredecessor();
             });
+
+            let dataDiv = createElementComplete("div", "tasksInfoDiv", "genContainer", "\xa0");
+            let barsDiv = Gant.createTable();
             newInterface.appendChild(newButton);
             newInterface.appendChild(dataDiv);
             newInterface.appendChild(barsDiv);
@@ -1383,7 +1392,6 @@ let Gant = (function () {
                 if(task != null) {
                     let trElem = object.createTaskRow(task.getRemainingTime());
                     let tdIndex = object.getDateOffset(task);
-                    console.log(tdIndex);
                     let tdElem;
                     if (tdIndex === 0){
                         tdElem = trElem.childNodes[0];

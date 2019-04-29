@@ -91,8 +91,11 @@ input[type="button"].newTask:hover {
 #tasksInfoDiv {
     padding-top: 0.3em;
     width: 30%;
+    max-width: 30%;
     display: inline-block;
-    /*border-right: 0.2em solid black;*/
+    overflow-x: scroll;
+    overflow-y: hidden;
+
 }
 
 #tasksInfoDiv, #tasksBarsTable {
@@ -103,11 +106,11 @@ input[type="button"].newTask:hover {
     margin-left: 4em;
     vertical-align: top;
     display: inline-block;
-    max-width: 61%;
-    overflow-x: scroll;
+    width: 61%;
     table-layout: auto;
     -webkit-user-select: none;
     border-spacing: 0;
+    overflow-x: scroll;
 }
 
 #tasksBarsTable *{

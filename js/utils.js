@@ -54,13 +54,26 @@ function removeElement(id) {
     return elem.parentNode.removeChild(elem);
 }
 
-function createTextNodes(array){
-  let t = [];
-  if(array !== []){
-    array.forEach(function(item){
-      t.push(document.createTextNode(String(item)));
-    });
-  }
+function createTextNodes(array) {
+    let t = [];
+    if (array !== []) {
+        array.forEach(function (item) {
+            t.push(document.createTextNode(String(item)));
+        });
+    }
 
-  return t;
+    return t;
+}
+
+function getTextWidth(element) {
+    let testElem = element.cloneNode(true);
+    testElem.style.position = "absolute";
+    testElem.style.visibility = "hidden";
+    testElem.style.width = "auto";
+    testElem.style.height = "auto";
+    testElem.style.whiteSpace = "nowrap";
+    document.body.appendChild(testElem);
+    let width = testElem.scrollWidth;
+    document.body.removeChild(testElem);
+    return width;
 }
