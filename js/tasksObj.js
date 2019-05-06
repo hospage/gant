@@ -424,6 +424,8 @@ const Task = (function(){
                     document.createElement("td"),
                     loadBar.parentNode
                 );
+                if(newIndex >= tRow.childNodes.length)
+                    this.getGant().refreshColsNumber(newIndex - tRow.childNodes.length);
                 tRow.replaceChild(loadBar.parentNode, tRow.childNodes[newIndex]);
             }
         }
@@ -699,9 +701,9 @@ const Task = (function(){
                         let xEnd = this.getBoundingClientRect().right;
                         let xMouse = ev.clientX;
                         let progressFloat = (parseFloat(xMouse) - xPos) / (xEnd - xPos);
-                        if (progressFloat < (0.02 * 15 / object.getRemainingTime()))
+                        if (progressFloat < (0.05))
                             progressFloat = 0;
-                        else if (progressFloat > (0.98 * 15 / object.getRemainingTime()))
+                        else if (progressFloat > (0.95))
                             progressFloat = 1;
 
                         object.setProgress(progressFloat);
@@ -1393,12 +1395,14 @@ let Gant = (function () {
                     let trElem = object.createTaskRow(task.getRemainingTime());
                     let tdIndex = object.getDateOffset(task);
                     let tdElem;
+
                     if (tdIndex === 0){
                         tdElem = trElem.childNodes[0];
                         object.updateDateOffsets();
                     }
                     else
                         tdElem = trElem.childNodes[tdIndex];
+
                     tdElem.setAttribute("colspan", "" + task.getRemainingTime());
                     tdElem.appendChild(task.getProgressBar());
                     document.getElementById("tasksBarsTable").appendChild(trElem);
